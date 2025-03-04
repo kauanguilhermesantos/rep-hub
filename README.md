@@ -2,6 +2,11 @@
 
 ## Sumário
 
+- [Casos Usuário](#casos-usuário)
+    - [Cadastrar Usuário](#31-cadastrar-usuário)
+    - [Visualizar Dados](#32-visualizar-dados)
+    - [Alterar Dados](#33-alterar-dados)
+    - [Deletar Usuário](#34-deletar-usuário)
 - [Casos Marca](#casos-marca)
     - [Cadastrar Marca](#41-cadastrar-marca)
     - [Visualizar Marca](#42-visualizar-marca)
@@ -18,6 +23,82 @@
     - [Visualizar Pedido](#42-visualizar-pedido)
     - [Alterar Pedido](#43-alterar-pedido)
     - [Deletar Pedido](#44-deletar-pedido)
+
+## Casos Usuário
+
+![Casos de uso usuário](diagramas/caso-usuario.png)
+
+**1. Introdução:** Este documento descreve o diagrama de caso de uso do sistema de gerenciamento de usuários, detalhando os atores envolvidos, os casos de uso e suas relações.
+
+**2. Atores:** Usuário.
+
+
+## 3. Casos de Uso
+## 3.1 Cadastrar Usuário
+**Descrição:** Permite ao usuário cadastrar-se no sistema.
+
+### Fluxo Principal:
+- **3.1.1** Usuário clica cadastre-se.
+- **3.1.2** Sistema abre formulário de cadastro.
+- **3.1.3** Usuário preenche formulário e clica no botão de ""cadastrar"".
+- **3.1.4** Sistema exibe mensagem de cadastro concluído.
+
+### Fluxos Alternativos:
+- **3.1.3a** Caso algum campo obrigatório não seja preenchido, o sistema informa o erro e permite o preenchimento.
+
+### Fluxos de Exceção:
+- **4.1.4e** Se ocorrer um erro interno no sistema, ele exibe uma mensagem de falha e orienta o usuário a tentar novamente.
+
+### Pós-condições:
+- O usuário é cadastrado no sistema.
+
+## 3.2 Visualizar Dados
+**Pré-condições:** Usuário deve está logado no sistema.
+
+**Descrição:** Permite ao usuário visualizar os seus dados cadastrados.
+
+### Fluxo Principal:
+- **3.2.1** Usuário clica em "Perfil".
+- **3.2.2** Sistema exibe o formulário com os dados cadastradas do usuário.
+
+### Pós-condições:
+-  O usuário visualiza os seus dados cadastrados.
+
+## 3.3 Alterar Dados
+
+**Descrição:** Permite ao usuário modificar os seus dados.
+
+### Fluxo Principal:
+- **3.3.1** Usuário clica em "Perfil".
+- **3.3.2** Sistema exibe o formulário com os dados cadastrados do usuário.
+- **3.3.3** Usuário altera os dados desejados e clica em "Salvar".
+- **3.3.4** Sistema valida e confirma a atualização.
+
+### Fluxos Alternativos:
+- **3.3.3a** Caso o usuário não informe dados obrigatórios, o sistema exibe uma mensagem de erro e solicita preenchimento.
+
+### Fluxos de Exceção:
+- **3.3.3e** Se ocorrer um erro na atualização, o sistema informa a falha e mantém os dados inalterados.
+
+### Pós-condições:
+- O usuário tem seus dados atualizados no sistema.
+
+## 3.4 Deletar Usuário
+**Descrição:** Permite ao usuário deletar a sua conta do sistema.
+
+### Fluxo Principal:
+- **3.4.1** Usuário clica em "Perfil".
+- **3.4.2** Sistema exibe o formulário com os dados cadastrados do usuário.
+- **3.4.3** Usuário clica no botão "Excluir conta".
+- **3.4.4** Sistema solicita confirmação da exclusão.
+- **3.4.5** Usuário confirma a exclusão.
+- **3.4.6** Sistema exclui usuário.
+
+### Fluxos de Exceção:
+- **3.4.6e** Se ocorrer um erro ao excluir, o sistema informa a falha e não exclui usuário.
+
+### Pós-condições:
+- O usuário é excluido do sistema.
 
 ## Casos Marca
 
