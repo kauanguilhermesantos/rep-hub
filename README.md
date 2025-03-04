@@ -1,5 +1,24 @@
 # Casos de Usos
 
+## Sumário
+
+- [Casos Marca](#casos-marca)
+    - [Cadastrar Marca](#41-cadastrar-marca)
+    - [Visualizar Marca](#42-visualizar-marca)
+    - [Alterar Marca](#43-alterar-marca)
+    - [Deletar Marca](#44-deletar-marca)
+- [Casos Cliente](#casos-cliente)
+    - [Cadastrar Cliente](#41-cadastrar-cliente)
+    - [Visualizar Cliente](#42-visualizar-cliente)
+    - [Alterar Cliente](#43-alterar-cliente)
+    - [Deletar Cliente](#44-deletar-cliente)
+    - [Desativar Cliente](#45-desativar-cliente)
+- [Casos Pedido](#casos-pedido)
+    - [Cadastrar Pedido](#41-cadastrar-pedido)
+    - [Visualizar Pedido](#42-visualizar-pedido)
+    - [Alterar Pedido](#43-alterar-pedido)
+    - [Deletar Pedido](#44-deletar-pedido)
+
 ## Casos Marca
 
 ![Caso de uso marca](diagramas/caso-marca.png)
