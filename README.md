@@ -1,4 +1,4 @@
-# Casos de Usos
+# Documentação RepHub
 
 ## Sumário
 
@@ -23,6 +23,8 @@
     - [Visualizar Pedido](#42-visualizar-pedido)
     - [Alterar Pedido](#43-alterar-pedido)
     - [Deletar Pedido](#44-deletar-pedido)
+- [Diagrama de Classes](#diagrama-de-classes)
+ 
 
 ## Casos Usuário
 
@@ -374,3 +376,6 @@
 
 ### Pós-condições:
 - O pedido é removido do sistema.
+
+## Diagrama de Classes
+![Diagrama de Classes](diagramas/diagrama-de-classes.png)
