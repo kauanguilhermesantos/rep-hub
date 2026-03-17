@@ -13,7 +13,7 @@ import {
 import Link from 'next/link'
 
 import ResumoCard from '@/components/ResumoCard'
-import MarcaCard from '@/components/MarcaCard'
+import MarcaVendasCard from '@/components/MarcaVendasCard'
 import PedidoRecenteCard from '@/components/PedidoRecenteCard'
 
 export default function Home() {
@@ -94,7 +94,7 @@ export default function Home() {
           {/* Lista de marcas */}
           <div className="space-y-3">
             {brandsData.map((brand, index) => (
-              <MarcaCard key={index} {...brand} />
+              <MarcaVendasCard key={index} {...brand} />
             ))}
           </div>
         </div>
