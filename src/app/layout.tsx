@@ -158,15 +158,19 @@ export default function RootLayout({
                 </div>
 
                 {/* Avatar do Usuário */}
-                <div className="flex items-center gap-3">
-                  <div className="text-right hidden sm:block">
-                    <p className="text-sm font-medium text-gray-700">Representante</p>
-                    <p className="text-xs text-gray-500">admin@rephub.com</p>
+                <Link href="/perfil">
+                  <div className="flex items-center gap-3">
+                    <div className="text-right hidden sm:block">
+                      {/* Nome do Usuário (Primeiro e Último) */}
+                      <p className="text-sm font-medium text-gray-700">Kauan Santos</p>
+                      {/* <p className="text-xs text-gray-500">admin@rephub.com</p> */}
+                    </div>
+                      {/* Avatar do Usuário (Iniciais do nome) */}
+                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                      KS
+                    </div>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                    R
-                  </div>
-                </div>
+                </Link>
               </div>
             </header>
 
