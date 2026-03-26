@@ -34,13 +34,21 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public ResponseEntity<Usuario> createUsuario(Usuario usuario) {
+    public ResponseEntity<Usuario> createUsuario(@RequestBody Usuario usuario) {
         return ResponseEntity.ok(usuarioService.createUsuario(usuario));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> updateUsuarioById(@PathVariable String id, @RequestBody Usuario usuario) {
-        return ResponseEntity.ok(usuarioService.updateUsuario(usuario));
+        usuario.setId(id);
+
+        Usuario usuarioAtualizado = usuarioService.updateUsuario(usuario);
+
+        if(usuarioAtualizado == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(usuarioAtualizado);
     }
 
     @DeleteMapping("/{id}")

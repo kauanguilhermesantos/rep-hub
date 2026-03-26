@@ -35,6 +35,9 @@ public class UsuarioService {
         if (existingUsuario == null) {
             return null;
         }
+
+        usuario.setDataCadastro(existingUsuario.getDataCadastro());
+
         BeanUtils.copyProperties(usuario, existingUsuario);
         return usuarioRepository.save(existingUsuario);
     }

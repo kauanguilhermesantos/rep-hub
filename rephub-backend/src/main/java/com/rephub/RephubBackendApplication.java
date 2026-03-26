@@ -1,4 +1,4 @@
-package com.rephub.rephub_backend;
+package com.rephub;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

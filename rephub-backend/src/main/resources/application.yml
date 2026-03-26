@@ -4,3 +4,7 @@ spring:
   mongodb:
     uri: mongodb+srv://admin:admin@rephub.yp7sqm9.mongodb.net/?appName=rephub
     database: rephub
+  security:
+    user:
+      name: admin
+      password: admin
