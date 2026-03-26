@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: rephub-backend
+  mongodb:
+    uri: mongodb+srv://admin:admin@rephub.yp7sqm9.mongodb.net/?appName=rephub
+    database: rephub
