@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: rephub-backend
+  mongodb:
+    uri: ${MONGO_URI}
+    database: rephub
+  security:
+    user:
+      name: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}

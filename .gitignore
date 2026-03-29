@@ -40,7 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.\rephub-backend\src\main\resources\application-secrets.yml
-./rephub-backend/src/main/resources/application-secrets.yml
-.\src\main\resources\application-secrets.yml
-./src/main/resources/application-secrets.yml
+
+### VS Code ###
+.vscode/
