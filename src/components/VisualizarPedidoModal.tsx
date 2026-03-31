@@ -2,7 +2,7 @@
 'use client'
 
 import { X, FileText, Download, User, Package, DollarSign, Calendar, CreditCard, Tag, Paperclip } from 'lucide-react'
-import { Pedido } from '@/app/pedidos/page'
+import { Pedido } from '@/app/(app)/pedidos/page'
 
 interface VisualizarPedidoModalProps {
   isOpen: boolean

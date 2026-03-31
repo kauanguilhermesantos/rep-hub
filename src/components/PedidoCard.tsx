@@ -2,7 +2,7 @@
 'use client'
 
 import { User, Paperclip, Eye, Edit2, Trash2 } from 'lucide-react'
-import { Pedido } from '@/app/pedidos/page'
+import { Pedido } from '@/app/(app)/pedidos/page'
 
 interface PedidoCardProps {
   pedido: Pedido

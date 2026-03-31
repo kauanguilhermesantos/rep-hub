@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X, Package, User, Calendar, DollarSign, Tag } from 'lucide-react'
-import { Pedido } from '@/app/pedidos/page'
+import { Pedido } from '@/app/(app)/pedidos/page'
 
 interface EditarPedidoModalProps {
   isOpen: boolean
