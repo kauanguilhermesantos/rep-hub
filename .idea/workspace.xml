@@ -2,7 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a19f9965-a056-49fb-a16f-de12b6ef9e02" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/rephub-backend/src/main/resources/application-secrets.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rephub-backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/rephub-backend/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rephub-backend/src/main/java/com/rephub/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/rephub-backend/src/main/java/com/rephub/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rephub-backend/src/main/java/com/rephub/models/Usuario.java" beforeDir="false" afterPath="$PROJECT_DIR$/rephub-backend/src/main/java/com/rephub/models/Usuario.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rephub-backend/src/main/java/com/rephub/repositories/MarcaRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/rephub-backend/src/main/java/com/rephub/repositories/MarcaRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rephub-backend/src/main/java/com/rephub/repositories/UsuarioRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/rephub-backend/src/main/java/com/rephub/repositories/UsuarioRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rephub-backend/src/main/java/com/rephub/services/UsuarioService.java" beforeDir="false" afterPath="$PROJECT_DIR$/rephub-backend/src/main/java/com/rephub/services/UsuarioService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rephub-backend/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/rephub-backend/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(auth)/login/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(auth)/login/page.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -12,9 +21,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 8
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
   <component name="ProjectId" id="3BcS3sfU1anlm7u9Ew1iMdAH2Wy" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -24,8 +33,10 @@
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "git-widget-placeholder": "v1.1",
+    "kotlin-language-version-configured": "true",
     "nodejs_package_manager_path": "npm"
   }
 }]]></component>
@@ -38,5 +49,8 @@
       <updated>1774786672177</updated>
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
 </project>

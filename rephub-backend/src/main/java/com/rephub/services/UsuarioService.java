@@ -1,8 +1,10 @@
 package com.rephub.services;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.rephub.models.Usuario;
@@ -14,6 +16,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class UsuarioService {
     private UsuarioRepository usuarioRepository;
+    private PasswordEncoder passwordEncoder;
 
     public List<Usuario> getAllUsuarios() {
         return usuarioRepository.findAll();
@@ -24,6 +27,8 @@ public class UsuarioService {
     }
 
     public Usuario createUsuario(Usuario usuario) {
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+        usuario.setDataCadastro(LocalDateTime.now());
         return usuarioRepository.save(usuario);
     }
 
@@ -37,6 +42,14 @@ public class UsuarioService {
         }
 
         usuario.setDataCadastro(existingUsuario.getDataCadastro());
+
+        // Só re-hasheia a senha se uma nova senha foi enviada no update;
+        // caso contrário, mantém o hash já existente
+        if (usuario.getSenha() == null || usuario.getSenha().isBlank()) {
+            usuario.setSenha(existingUsuario.getSenha());
+        } else {
+            usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+        }
 
         BeanUtils.copyProperties(usuario, existingUsuario);
         return usuarioRepository.save(existingUsuario);

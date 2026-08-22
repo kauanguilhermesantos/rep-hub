@@ -5,6 +5,5 @@ import org.springframework.stereotype.Repository;
 
 import com.rephub.models.Marca;
 
-@Repository
 public interface MarcaRepository extends MongoRepository<Marca, String> {
 }
