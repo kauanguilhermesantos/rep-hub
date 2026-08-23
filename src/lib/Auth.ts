@@ -9,6 +9,30 @@ interface LoginResponse {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
+interface RegisterPayload {
+  nomeCompleto: string
+  email: string
+  senha: string
+  telefone: string
+}
+
+export async function register(payload: RegisterPayload) {
+  const response = await fetch(`${API_URL}/api/usuarios`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    if (response.status === 409) {
+      throw new Error("Já existe uma conta com esse e-mail")
+    }
+    throw new Error("Não foi possível criar a conta")
+  }
+
+  return response.json()
+}
+
 export async function login(email: string, senha: string): Promise<LoginResponse> {
   const response = await fetch(`${API_URL}/api/auth/login`, {
     method: "POST",

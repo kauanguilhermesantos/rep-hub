@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { login } from "@/lib/Auth"
-// import "@/app/styles/globals.css"
+import "@/app/globals.css"
+import Link from "next/link"
 
 export default function TelaLogin() {
   const router = useRouter()
@@ -84,6 +85,15 @@ export default function TelaLogin() {
             {carregando ? "Entrando..." : "Entrar"}
           </button>
         </form>
+        {/* Link para cadastro */}
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
+            Não tem uma conta?{' '}
+            <Link href="/cadastro" className="font-medium text-blue-500 hover:text-blue-600">
+              Cadastre-se
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )
