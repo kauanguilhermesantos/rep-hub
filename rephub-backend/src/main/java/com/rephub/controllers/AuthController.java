@@ -6,6 +6,7 @@ import com.rephub.models.Usuario;
 import com.rephub.repositories.UsuarioRepository;
 import com.rephub.security.CustomUserDetailsService;
 import com.rephub.security.JwtService;
+import com.rephub.services.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +27,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioService usuarioService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -42,6 +44,8 @@ public class AuthController {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         String token = jwtService.generateToken(userDetails);
+
+        usuarioService.atualizarUltimoAcesso(request.getEmail());
 
         Usuario usuario = usuarioRepository.findByEmail(request.getEmail()).orElseThrow();
 

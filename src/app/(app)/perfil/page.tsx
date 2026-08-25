@@ -1,83 +1,103 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Calendar, 
-  Clock, 
-  Save, 
-  Edit2, 
+import {
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  Clock,
+  Save,
+  Edit2,
   X,
-  Check,
   Globe,
   Bell,
   Moon,
   Sun,
-  Monitor,
   AlertCircle,
   Shield,
   Key
 } from 'lucide-react'
 import { Usuario } from '@/types/usuario'
 import AvatarUsuario from '@/components/AvatarUsuario'
+import { getMe, updateMe } from '@/services/usuarioService'
+import { formatarData, formatarDataHora } from '@/lib/formatoHora'
 
 export default function PerfilPage() {
+  const [usuario, setUsuario] = useState<Usuario | null>(null)
+  const [formData, setFormData] = useState<Usuario | null>(null)
+
+  const [carregando, setCarregando] = useState(true)
+  const [erroCarregamento, setErroCarregamento] = useState('')
+
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [mensagem, setMensagem] = useState<{ tipo: 'success' | 'error'; texto: string } | null>(null)
 
-  // Dados do usuário (mockados)
-  const [usuario, setUsuario] = useState<Usuario>({
-    id: '1',
-    nomeCompleto: 'João Silva Santos',
-    email: 'joao.silva@rephub.com',
-    telefone: '(11) 98765-4321',
-    cargo: 'Representante Comercial',
-    dataCadastro: '10/01/2026',
-    ultimoAcesso: '21/03/2026 14:30',
-    preferencias: {
-      notificacoes: true,
-      idioma: 'pt-BR',
-      tema: 'light'
-    }
-  })
-
-  const [formData, setFormData] = useState(usuario)
-
-  // Atualiza formData quando o usuário muda
+  // Busca os dados reais do usuário logado ao carregar a página
   useEffect(() => {
-    setFormData(usuario)
-  }, [usuario])
+    async function carregarUsuario() {
+      try {
+        const dados = await getMe()
+        setUsuario(dados)
+        setFormData(dados)
+      } catch (err) {
+        setErroCarregamento('Não foi possível carregar seus dados. Tente recarregar a página.')
+      } finally {
+        setCarregando(false)
+      }
+    }
+
+    carregarUsuario()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData(prev => (prev ? { ...prev, [name]: value } : prev))
   }
 
+  // Preferências continuam apenas em estado local por enquanto (não persistem no backend)
   const handlePreferenciaChange = (key: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      preferencias: { ...prev.preferencias!, [key]: value }
-    }))
+    setFormData(prev =>
+      prev
+        ? {
+            ...prev,
+            preferencias: { ...prev.preferencias!, [key]: value }
+          }
+        : prev
+    )
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData) return
+
     setIsSaving(true)
     setMensagem(null)
 
-    // Simular chamada API
-    setTimeout(() => {
-      setUsuario(formData)
+    try {
+      const usuarioAtualizado = await updateMe({
+        nomeCompleto: formData.nomeCompleto,
+        email: formData.email,
+        telefone: formData.telefone,
+      })
+
+      // Preserva as preferências locais (não vieram da API de update)
+      const usuarioComPreferencias = { ...usuarioAtualizado, preferencias: formData.preferencias }
+
+      setUsuario(usuarioComPreferencias)
+      setFormData(usuarioComPreferencias)
       setIsEditing(false)
-      setIsSaving(false)
       setMensagem({ tipo: 'success', texto: 'Perfil atualizado com sucesso!' })
-      
-      // Limpar mensagem após 3 segundos
+    } catch (err) {
+      setMensagem({
+        tipo: 'error',
+        texto: err instanceof Error ? err.message : 'Não foi possível salvar as alterações',
+      })
+    } finally {
+      setIsSaving(false)
       setTimeout(() => setMensagem(null), 3000)
-    }, 1000)
+    }
   }
 
   const handleCancel = () => {
@@ -97,7 +117,24 @@ export default function PerfilPage() {
         value = value.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3')
       }
     }
-    setFormData(prev => ({ ...prev, telefone: value }))
+    setFormData(prev => (prev ? { ...prev, telefone: value } : prev))
+  }
+
+  if (carregando) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (erroCarregamento || !usuario || !formData) {
+    return (
+      <div className="p-6 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
+        <AlertCircle size={20} />
+        <span>{erroCarregamento || 'Não foi possível carregar seu perfil.'}</span>
+      </div>
+    )
   }
 
   return (
@@ -119,16 +156,16 @@ export default function PerfilPage() {
               <AvatarUsuario nome={usuario.nomeCompleto} tamanho="xl" />
             </div>
             <h2 className="text-xl font-bold text-gray-800">{usuario.nomeCompleto}</h2>
-            <p className="text-blue-600 font-medium mt-1">{usuario.cargo}</p>
-            
+            <p className="text-blue-600 font-medium mt-1">{usuario.cargo || 'Cargo não definido'}</p>
+
             <div className="mt-4 pt-4 border-t border-gray-100">
               <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
                 <Calendar size={16} />
-                <span>Membro desde {usuario.dataCadastro}</span>
+                <span>Membro desde {formatarData(usuario.dataCadastro)}</span>
               </div>
               <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-2">
                 <Clock size={16} />
-                <span>Último acesso: {usuario.ultimoAcesso}</span>
+                <span>Último acesso: {formatarDataHora(usuario.ultimoAcesso)}</span>
               </div>
             </div>
           </div>
@@ -279,7 +316,7 @@ export default function PerfilPage() {
                   Cargo
                 </label>
                 <p className="text-gray-800 py-2 bg-gray-50 rounded-lg px-4">
-                  {usuario.cargo}
+                  {usuario.cargo || 'Não definido'}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   Para alterar o cargo, entre em contato com o administrador
@@ -288,10 +325,10 @@ export default function PerfilPage() {
             </div>
           </form>
 
-          {/* Preferências */}
+          {/* Preferências (ainda não persiste no backend) */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Preferências</h3>
-            
+
             <div className="space-y-4">
               {/* Notificações */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">

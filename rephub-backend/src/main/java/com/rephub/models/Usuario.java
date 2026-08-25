@@ -27,5 +27,7 @@ public class Usuario {
     private String senha;
 
     private String telefone;
+    private String cargo;
     private LocalDateTime dataCadastro;
+    private LocalDateTime ultimoAcesso;
 }

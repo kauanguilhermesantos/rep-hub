@@ -33,6 +33,13 @@ export async function register(payload: RegisterPayload) {
   return response.json()
 }
 
+// Salva o token no localStorage (usado pelo authFetch) e num cookie
+// (lido pelo middleware.ts para proteger rotas)
+export function updateToken(token: string) {
+  localStorage.setItem(TOKEN_KEY, token)
+  document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`
+}
+
 export async function login(email: string, senha: string): Promise<LoginResponse> {
   const response = await fetch(`${API_URL}/api/auth/login`, {
     method: "POST",
@@ -45,14 +52,7 @@ export async function login(email: string, senha: string): Promise<LoginResponse
   }
 
   const data: LoginResponse = await response.json()
-
-  // Salva o token no localStorage, usado pelo authFetch em chamadas à API
-  localStorage.setItem(TOKEN_KEY, data.token)
-
-  // Salva também em um cookie legível pelo middleware.ts (proteção de rotas
-  // no lado do servidor/edge). A validação "de verdade" do token continua
-  // acontecendo no backend a cada requisição.
-  document.cookie = `token=${data.token}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`
+  updateToken(data.token)
 
   return data
 }
