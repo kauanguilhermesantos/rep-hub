@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -16,6 +16,9 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { logout } from '@/lib/Auth'
+import { getMe } from '@/services/usuarioService'
+import { primeiroEUltimoNome, iniciais } from '@/lib/formatoNome'
+import { Usuario } from '@/types/usuario'
 import '@/app/globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -23,7 +26,18 @@ const inter = Inter({ subsets: ['latin'] })
 export default function UsuarioLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [usuario, setUsuario] = useState<Usuario | null>(null)
   const pathname = usePathname()
+
+  // Busca os dados reais do usuário logado (usado no cabeçalho)
+  useEffect(() => {
+    getMe()
+      .then(setUsuario)
+      .catch(() => {
+        // Falha silenciosa aqui: se o token tiver expirado, o middleware
+        // já vai redirecionar pro /login na próxima navegação
+      })
+  }, [])
 
   const navigation = [
     { name: 'Início', href: '/home', icon: Home },
@@ -160,13 +174,14 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
               <Link href="/perfil">
                 <div className="flex items-center gap-3">
                   <div className="text-right hidden sm:block">
-                    {/* Nome do Usuário (Primeiro e Último) */}
-                    <p className="text-sm font-medium text-gray-700">Kauan Santos</p>
-                    {/* <p className="text-xs text-gray-500">admin@rephub.com</p> */}
+                    {/* Primeiro e último nome do usuário logado */}
+                    <p className="text-sm font-medium text-gray-700">
+                      {usuario ? primeiroEUltimoNome(usuario.nomeCompleto) : ''}
+                    </p>
                   </div>
-                    {/* Avatar do Usuário (Iniciais do nome) */}
+                  {/* Avatar do Usuário (iniciais do nome) */}
                   <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                    KS
+                    {usuario ? iniciais(usuario.nomeCompleto) : ''}
                   </div>
                 </div>
               </Link>
