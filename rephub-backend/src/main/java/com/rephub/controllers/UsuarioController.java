@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rephub.dto.AlterarSenhaRequest;
 import com.rephub.dto.AtualizarPerfilRequest;
 import com.rephub.dto.AtualizarPerfilResponse;
+import com.rephub.dto.ExcluirContaRequest;
+import com.rephub.exceptions.SenhaInvalidaException;
 import com.rephub.models.Usuario;
 import com.rephub.security.CustomUserDetailsService;
 import com.rephub.security.JwtService;
@@ -42,7 +45,6 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.findById(id));
     }
 
-    // Retorna os dados do usuário atualmente autenticado (via token JWT)
     @GetMapping("/me")
     public ResponseEntity<Usuario> getMe(Authentication authentication) {
         Usuario usuario = usuarioService.findByEmail(authentication.getName());
@@ -52,8 +54,6 @@ public class UsuarioController {
         return ResponseEntity.ok(usuario);
     }
 
-    // Atualiza o perfil do usuário logado (nome, e-mail, telefone).
-    // Não permite alterar senha ou cargo por essa rota.
     @PutMapping("/me")
     public ResponseEntity<?> updateMe(Authentication authentication, @RequestBody AtualizarPerfilRequest request) {
         String emailAtual = authentication.getName();
@@ -71,8 +71,6 @@ public class UsuarioController {
             return ResponseEntity.notFound().build();
         }
 
-        // Se o e-mail mudou, o token antigo (assinado com o e-mail anterior)
-        // não vai mais autenticar o usuário — geramos um novo pra substituir.
         String novoToken = null;
         if (emailAlterado) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(usuarioAtualizado.getEmail());
@@ -80,6 +78,28 @@ public class UsuarioController {
         }
 
         return ResponseEntity.ok(new AtualizarPerfilResponse(usuarioAtualizado, novoToken));
+    }
+
+    // Troca a senha do usuário logado, exigindo a senha atual como confirmação
+    @PutMapping("/me/senha")
+    public ResponseEntity<?> alterarSenha(Authentication authentication, @RequestBody AlterarSenhaRequest request) {
+        try {
+            usuarioService.alterarSenha(authentication.getName(), request.getSenhaAtual(), request.getNovaSenha());
+        } catch (SenhaInvalidaException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    // Exclui a conta do usuário logado, exigindo a senha como confirmação
+    @DeleteMapping("/me")
+    public ResponseEntity<?> excluirMinhaConta(Authentication authentication, @RequestBody ExcluirContaRequest request) {
+        try {
+            usuarioService.excluirConta(authentication.getName(), request.getSenha());
+        } catch (SenhaInvalidaException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping

@@ -4,10 +4,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.rephub.dto.AtualizarPerfilRequest;
+import com.rephub.exceptions.SenhaInvalidaException;
 import com.rephub.models.Usuario;
 import com.rephub.repositories.UsuarioRepository;
 
@@ -48,8 +50,6 @@ public class UsuarioService {
 
         usuario.setDataCadastro(existingUsuario.getDataCadastro());
 
-        // Só re-hasheia a senha se uma nova senha foi enviada no update;
-        // caso contrário, mantém o hash já existente
         if (usuario.getSenha() == null || usuario.getSenha().isBlank()) {
             usuario.setSenha(existingUsuario.getSenha());
         } else {
@@ -91,6 +91,43 @@ public class UsuarioService {
             usuario.setUltimoAcesso(LocalDateTime.now());
             usuarioRepository.save(usuario);
         }
+    }
+
+    /**
+     * Troca a senha do usuário logado, exigindo confirmação da senha atual.
+     */
+    public void alterarSenha(String email, String senhaAtual, String novaSenha) {
+        Usuario usuario = findByEmail(email);
+        if (usuario == null) {
+            throw new UsernameNotFoundException("Usuário não encontrado");
+        }
+
+        if (!passwordEncoder.matches(senhaAtual, usuario.getSenha())) {
+            throw new SenhaInvalidaException("Senha atual incorreta");
+        }
+
+        if (novaSenha == null || novaSenha.length() < 8) {
+            throw new SenhaInvalidaException("A nova senha deve ter pelo menos 8 caracteres");
+        }
+
+        usuario.setSenha(passwordEncoder.encode(novaSenha));
+        usuarioRepository.save(usuario);
+    }
+
+    /**
+     * Exclui a conta do usuário logado, exigindo confirmação da senha.
+     */
+    public void excluirConta(String email, String senha) {
+        Usuario usuario = findByEmail(email);
+        if (usuario == null) {
+            throw new UsernameNotFoundException("Usuário não encontrado");
+        }
+
+        if (!passwordEncoder.matches(senha, usuario.getSenha())) {
+            throw new SenhaInvalidaException("Senha incorreta");
+        }
+
+        usuarioRepository.delete(usuario);
     }
 
     public Usuario deleteUsuario(String id) {

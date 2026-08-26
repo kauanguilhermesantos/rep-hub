@@ -16,10 +16,13 @@ import {
   Sun,
   AlertCircle,
   Shield,
-  Key
+  Key,
+  Trash2
 } from 'lucide-react'
 import { Usuario } from '@/types/usuario'
 import AvatarUsuario from '@/components/AvatarUsuario'
+import AlterarSenhaModal from '@/components/AlterarSenhaModal'
+import ExcluirContaModal from '@/components/ExcluirContaModal'
 import { getMe, updateMe } from '@/services/usuarioService'
 import { formatarData, formatarDataHora } from '@/lib/formatoHora'
 
@@ -33,6 +36,9 @@ export default function PerfilPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [mensagem, setMensagem] = useState<{ tipo: 'success' | 'error'; texto: string } | null>(null)
+
+  const [mostrarModalSenha, setMostrarModalSenha] = useState(false)
+  const [mostrarModalExcluir, setMostrarModalExcluir] = useState(false)
 
   // Busca os dados reais do usuário logado ao carregar a página
   useEffect(() => {
@@ -176,12 +182,30 @@ export default function PerfilPage() {
               <Shield className="text-blue-600" size={20} />
               <h3 className="font-semibold text-gray-800">Segurança</h3>
             </div>
-            <button className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+            <button
+              onClick={() => setMostrarModalSenha(true)}
+              className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
               <div className="flex items-center gap-2">
                 <Key size={18} className="text-gray-500" />
                 <span className="text-sm text-gray-700">Alterar senha</span>
               </div>
               <Edit2 size={16} className="text-gray-400" />
+            </button>
+          </div>
+
+          {/* Zona de perigo */}
+          <div className="bg-white rounded-xl shadow-sm border border-red-100 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Trash2 className="text-red-600" size={20} />
+              <h3 className="font-semibold text-gray-800">Zona de perigo</h3>
+            </div>
+            <button
+              onClick={() => setMostrarModalExcluir(true)}
+              className="w-full flex items-center justify-between p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+            >
+              <span className="text-sm text-red-700 font-medium">Excluir minha conta</span>
+              <Trash2 size={16} className="text-red-500" />
             </button>
           </div>
         </div>
@@ -397,6 +421,15 @@ export default function PerfilPage() {
           </div>
         </div>
       </div>
+
+      <AlterarSenhaModal
+        isOpen={mostrarModalSenha}
+        onClose={() => setMostrarModalSenha(false)}
+      />
+      <ExcluirContaModal
+        isOpen={mostrarModalExcluir}
+        onClose={() => setMostrarModalExcluir(false)}
+      />
     </div>
   )
 }
