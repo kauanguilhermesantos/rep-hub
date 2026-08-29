@@ -3,6 +3,7 @@ package com.rephub.controllers;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rephub.models.Marca;
+import com.rephub.models.Usuario;
 import com.rephub.services.MarcaService;
+import com.rephub.services.UsuarioService;
 
 import lombok.AllArgsConstructor;
 
@@ -21,7 +24,8 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 @RequestMapping("/api/marcas")
 public class MarcaController {
-    private final MarcaService marcaService; // Injeção de dependência do serviço de marca
+    private final MarcaService marcaService;
+    private final UsuarioService usuarioService;
 
     @GetMapping
     public ResponseEntity<List<Marca>> getAllMarcas() {
@@ -38,7 +42,11 @@ public class MarcaController {
     }
 
     @PostMapping
-    public ResponseEntity<Marca> createMarca(@RequestBody Marca marca) {
+    public ResponseEntity<Marca> createMarca(Authentication authentication, @RequestBody Marca marca) {
+        // O dono da marca é sempre o usuário autenticado
+        Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
+        marca.setUsuario(usuarioLogado);
+
         return ResponseEntity.ok(marcaService.createMarca(marca));
     }
 

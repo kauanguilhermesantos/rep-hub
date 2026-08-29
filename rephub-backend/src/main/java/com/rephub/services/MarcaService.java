@@ -34,42 +34,37 @@ public class MarcaService {
             marca.setUsuario(usuario);
         }
 
-        // Adiciona a data de cadastro
         if (marca.getDataCadastro() == null) {
             marca.setDataCadastro(LocalDateTime.now());
         }
 
-        // Define o total de pedidos como 0 ao criar uma nova marca
         if (marca.getTotalPedidos() == null) {
             marca.setTotalPedidos(0);
         }
 
-        // Salva a marca no banco de dados
         return marcaRepository.save(marca);
     }
 
     public Marca updateMarca(Marca marca) {
-        // Verifica se a marca e o ID são válidos
         if (marca == null || marca.getId() == null) {
             return null;
         }
 
-        // Verifica se a marca existe no banco de dados
         Marca existingMarca = findById(marca.getId());
         if (existingMarca == null) {
             return null;
         }
 
-        // Se veio um usuário associado, carrega o usuário do banco de dados
-        if (marca.getUsuario() != null && marca.getUsuario().getId() != null) {
-            Usuario usuario = usuarioRepository.findById(marca.getUsuario().getId()).orElse(null);
-            marca.setUsuario(usuario);
+        // Preserva campos que essa rota não deve alterar. Sem isso, o
+        // BeanUtils.copyProperties abaixo sobrescreveria com "null" qualquer
+        // campo que o cliente não tenha enviado no corpo da requisição
+        // (ex: editar só o nome apagaria totalPedidos e o vínculo com o usuário).
+        marca.setDataCadastro(existingMarca.getDataCadastro());
+        marca.setUsuario(existingMarca.getUsuario());
+        if (marca.getTotalPedidos() == null) {
+            marca.setTotalPedidos(existingMarca.getTotalPedidos());
         }
 
-        // Mantém a data de cadastro original
-        marca.setDataCadastro(existingMarca.getDataCadastro());
-
-        // Atualiza os campos da marca existente com os valores da marca recebida
         BeanUtils.copyProperties(marca, existingMarca);
         return marcaRepository.save(existingMarca);
     }
