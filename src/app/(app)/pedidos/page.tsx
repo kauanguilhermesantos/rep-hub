@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Package,
   ShoppingBag,
@@ -8,14 +8,7 @@ import {
   Percent,
   Plus,
   Search,
-  FileText,
-  Download,
-  Eye,
-  Edit2,
-  Trash2,
-  X,
-  User,
-  Paperclip
+  AlertCircle
 } from 'lucide-react'
 
 import { Marca } from '@/components/MarcaCard'
@@ -23,6 +16,8 @@ import NovoPedidoModal from '@/components/NovoPedidoModal'
 import EditarPedidoModal from '@/components/EditarPedidoModal'
 import PedidoCard from '@/components/PedidoCard'
 import VisualizarPedidoModal from '@/components/VisualizarPedidoModal'
+import { listarPedidos, criarPedido, editarPedido, excluirPedido, PedidoFormPayload } from '@/services/pedidoService'
+import { listarMarcas } from '@/services/marcaService'
 
 export interface Pedido {
   id: string
@@ -32,14 +27,13 @@ export interface Pedido {
   pares: number
   valorTotal: number
   condicaoPagamento: string
-  comissao: number
+  comissaoPercentual: number
   valorComissao: number
   anexo?: {
     nome: string
     url: string
   }
   dataCadastro: string
-  status: 'Pendente' | 'Processando' | 'Entregue'
 }
 
 // Componente de Card de Resumo
@@ -56,48 +50,33 @@ const SummaryCard = ({ title, value, icon: Icon, color }: any) => (
 )
 
 export default function PedidosPage() {
-  // Dados mockados
-  const [marcas] = useState<Marca[]>([
-    { id: '1', nome: 'Nike', dataCadastro: '10/03/2026', totalPedidos: 45 },
-    { id: '2', nome: 'Adidas', dataCadastro: '12/03/2026', totalPedidos: 38 },
-    { id: '3', nome: 'Puma', dataCadastro: '15/03/2026', totalPedidos: 28 },
-    { id: '4', nome: 'Vans', dataCadastro: '18/03/2026', totalPedidos: 22 }
-  ])
-
-  const [pedidos, setPedidos] = useState<Pedido[]>([
-    {
-      id: '1',
-      marcaId: '1',
-      marcaNome: 'Nike',
-      cliente: 'Loja Esportes LTDA',
-      pares: 50,
-      valorTotal: 5000,
-      condicaoPagamento: '30 dias',
-      comissao: 5,
-      valorComissao: 250,
-      dataCadastro: '15/03/2026',
-      status: 'Entregue'
-    },
-    {
-      id: '2',
-      marcaId: '2',
-      marcaNome: 'Adidas',
-      cliente: 'Sport Center ME',
-      pares: 30,
-      valorTotal: 3600,
-      condicaoPagamento: '30/60 dias',
-      comissao: 6,
-      valorComissao: 216,
-      dataCadastro: '16/03/2026',
-      status: 'Processando'
-    }
-  ])
+  const [pedidos, setPedidos] = useState<Pedido[]>([])
+  const [marcas, setMarcas] = useState<Marca[]>([])
+  const [carregando, setCarregando] = useState(true)
+  const [erroCarregamento, setErroCarregamento] = useState('')
+  const [mensagem, setMensagem] = useState('')
 
   const [searchTerm, setSearchTerm] = useState('')
   const [modalNovoPedidoOpen, setModalNovoPedidoOpen] = useState(false)
   const [modalVisualizarOpen, setModalVisualizarOpen] = useState(false)
   const [modalEditarOpen, setModalEditarOpen] = useState(false)
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null)
+
+  // Carrega pedidos e marcas reais do backend ao abrir a página
+  useEffect(() => {
+    Promise.all([listarPedidos(), listarMarcas()])
+      .then(([pedidosData, marcasData]) => {
+        setPedidos(pedidosData)
+        setMarcas(marcasData)
+      })
+      .catch(() => setErroCarregamento('Não foi possível carregar os pedidos. Tente recarregar a página.'))
+      .finally(() => setCarregando(false))
+  }, [])
+
+  function mostrarErro(texto: string) {
+    setMensagem(texto)
+    setTimeout(() => setMensagem(''), 4000)
+  }
 
   // Cálculos para os cards
   const totalPedidos = pedidos.length
@@ -106,9 +85,9 @@ export default function PedidosPage() {
   const totalComissao = pedidos.reduce((acc, p) => acc + p.valorComissao, 0)
 
   // Funções CRUD
-  const handleSavePedido = (novoPedido: Pedido) => {
-    setPedidos([novoPedido, ...pedidos])
-    setModalNovoPedidoOpen(false)
+  const handleSavePedido = async (payload: PedidoFormPayload) => {
+    const novo = await criarPedido(payload)
+    setPedidos(prev => [novo, ...prev])
   }
 
   const handleEditPedido = (pedido: Pedido) => {
@@ -116,10 +95,9 @@ export default function PedidosPage() {
     setModalEditarOpen(true)
   }
 
-  const handleUpdatePedido = (id: string, pedidoAtualizado: Pedido) => {
-    setPedidos(pedidos.map(p => p.id === id ? pedidoAtualizado : p))
-    setModalEditarOpen(false)
-    setPedidoSelecionado(null)
+  const handleUpdatePedido = async (id: string, payload: PedidoFormPayload) => {
+    const atualizado = await editarPedido(id, payload)
+    setPedidos(prev => prev.map(p => (p.id === id ? atualizado : p)))
   }
 
   const handleViewPedido = (pedido: Pedido) => {
@@ -127,9 +105,14 @@ export default function PedidosPage() {
     setModalVisualizarOpen(true)
   }
 
-  const handleDeletePedido = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este pedido?')) {
-      setPedidos(pedidos.filter(p => p.id !== id))
+  const handleDeletePedido = async (id: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir este pedido?')) return
+
+    try {
+      await excluirPedido(id)
+      setPedidos(prev => prev.filter(p => p.id !== id))
+    } catch (err) {
+      mostrarErro(err instanceof Error ? err.message : 'Não foi possível excluir o pedido')
     }
   }
 
@@ -138,6 +121,23 @@ export default function PedidosPage() {
     pedido.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
     pedido.marcaNome.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  if (carregando) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (erroCarregamento) {
+    return (
+      <div className="p-6 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
+        <AlertCircle size={20} />
+        <span>{erroCarregamento}</span>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -158,31 +158,39 @@ export default function PedidosPage() {
         </button>
       </div>
 
+      {/* Mensagem de feedback (erros de excluir, por ex.) */}
+      {mensagem && (
+        <div className="p-4 rounded-lg flex items-center gap-2 bg-red-50 text-red-700">
+          <AlertCircle size={20} />
+          <span>{mensagem}</span>
+        </div>
+      )}
+
       {/* Cards de Resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <SummaryCard 
-          title="Total de Pedidos" 
-          value={totalPedidos} 
-          icon={Package} 
-          color="blue" 
+        <SummaryCard
+          title="Total de Pedidos"
+          value={totalPedidos}
+          icon={Package}
+          color="blue"
         />
-        <SummaryCard 
-          title="Total de Pares" 
-          value={totalPares} 
-          icon={ShoppingBag} 
-          color="green" 
+        <SummaryCard
+          title="Total de Pares"
+          value={totalPares}
+          icon={ShoppingBag}
+          color="green"
         />
-        <SummaryCard 
-          title="Valor em Vendas" 
-          value={totalVendas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
-          icon={DollarSign} 
-          color="yellow" 
+        <SummaryCard
+          title="Valor em Vendas"
+          value={totalVendas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          icon={DollarSign}
+          color="yellow"
         />
-        <SummaryCard 
-          title="Comissão Total" 
-          value={totalComissao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
-          icon={Percent} 
-          color="purple" 
+        <SummaryCard
+          title="Comissão Total"
+          value={totalComissao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          icon={Percent}
+          color="purple"
         />
       </div>
 
@@ -218,8 +226,8 @@ export default function PedidosPage() {
             {searchTerm ? 'Nenhum pedido encontrado' : 'Nenhum pedido cadastrado'}
           </h3>
           <p className="text-gray-500">
-            {searchTerm 
-              ? 'Tente buscar por outro termo' 
+            {searchTerm
+              ? 'Tente buscar por outro termo'
               : 'Clique em "Novo Pedido" para começar'}
           </p>
         </div>
@@ -230,6 +238,7 @@ export default function PedidosPage() {
         isOpen={modalNovoPedidoOpen}
         onClose={() => setModalNovoPedidoOpen(false)}
         onSave={handleSavePedido}
+        marcas={marcas}
       />
 
       <EditarPedidoModal
@@ -240,6 +249,7 @@ export default function PedidosPage() {
         }}
         onSave={handleUpdatePedido}
         pedido={pedidoSelecionado}
+        marcas={marcas}
       />
 
       <VisualizarPedidoModal

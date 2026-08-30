@@ -3,6 +3,7 @@ package com.rephub.controllers;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rephub.models.Pedido;
+import com.rephub.models.Usuario;
 import com.rephub.services.PedidoService;
+import com.rephub.services.UsuarioService;
 
 import lombok.AllArgsConstructor;
 
@@ -22,44 +25,59 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/api/pedidos")
 public class PedidoController {
     private final PedidoService pedidoService;
-    
+    private final UsuarioService usuarioService;
+
     @GetMapping
-    public ResponseEntity<List<Pedido>> getAllPedidos() {
-        return ResponseEntity.ok(pedidoService.getAllPedidos());
+    public ResponseEntity<List<Pedido>> getAllPedidos(Authentication authentication) {
+        Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
+        return ResponseEntity.ok(pedidoService.getPedidosDoUsuario(usuarioLogado.getId()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Pedido> getPedidoById(@PathVariable String id) {
+    public ResponseEntity<Pedido> getPedidoById(Authentication authentication, @PathVariable String id) {
         Pedido pedido = pedidoService.findById(id);
-        if (pedido == null) {
+        if (pedido == null || !pertenceAoUsuario(pedido, authentication)) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(pedido);
     }
 
     @PostMapping
-    public ResponseEntity<Pedido> createPedido(@RequestBody Pedido pedido) {
+    public ResponseEntity<Pedido> createPedido(Authentication authentication, @RequestBody Pedido pedido) {
+        // O dono do pedido é sempre o usuário autenticado
+        Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
+        pedido.setUsuario(usuarioLogado);
+
         Pedido novoPedido = pedidoService.createPedido(pedido);
         return ResponseEntity.ok(novoPedido);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Pedido> updatePedidoById(@PathVariable String id, @RequestBody Pedido pedido) {
-        pedido.setId(id);
-        Pedido pedidoAtualizado = pedidoService.updatePedido(pedido);
-        if (pedidoAtualizado == null) {
+    public ResponseEntity<Pedido> updatePedidoById(Authentication authentication, @PathVariable String id, @RequestBody Pedido pedido) {
+        Pedido existente = pedidoService.findById(id);
+        if (existente == null || !pertenceAoUsuario(existente, authentication)) {
             return ResponseEntity.notFound().build();
         }
+
+        pedido.setId(id);
+        Pedido pedidoAtualizado = pedidoService.updatePedido(pedido);
         return ResponseEntity.ok(pedidoAtualizado);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePedidoById(@PathVariable String id) {
+    public ResponseEntity<Void> deletePedidoById(Authentication authentication, @PathVariable String id) {
         Pedido pedido = pedidoService.findById(id);
-        if (pedido == null) {
+        if (pedido == null || !pertenceAoUsuario(pedido, authentication)) {
             return ResponseEntity.notFound().build();
         }
         pedidoService.deletePedido(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Garante que o usuário só consiga ler/editar/excluir os próprios pedidos
+    private boolean pertenceAoUsuario(Pedido pedido, Authentication authentication) {
+        return pedido.getUsuario() != null
+                && pedido.getUsuario().getEmail() != null
+                && pedido.getUsuario().getEmail().equalsIgnoreCase(authentication.getName());
     }
 }

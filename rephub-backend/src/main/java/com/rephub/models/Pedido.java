@@ -17,6 +17,7 @@ public class Pedido {
     private String cliente;
     private Integer quantPares;
     private Double valorTotal;
+    private Double comissaoPercentual; // Percentual de comissão do pedido (ex: 5.0 = 5%)
     private Double valorComissao;
     private String condicaoPagamento;
     private LocalDateTime dataCadastro;

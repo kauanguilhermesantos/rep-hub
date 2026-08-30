@@ -1,7 +1,6 @@
-// components/VisualizarPedidoModal.tsx
 'use client'
 
-import { X, FileText, Download, User, Package, DollarSign, Calendar, CreditCard, Tag, Paperclip } from 'lucide-react'
+import { X, FileText, Download, User, Package, DollarSign, Calendar, CreditCard, Tag, Paperclip, Percent } from 'lucide-react'
 import { Pedido } from '@/app/(app)/pedidos/page'
 
 interface VisualizarPedidoModalProps {
@@ -19,15 +18,6 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
       style: 'currency', 
       currency: 'BRL' 
     })
-  }
-
-  // Função para obter cor do status
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'Entregue': return 'bg-green-100 text-green-700'
-      case 'Processando': return 'bg-yellow-100 text-yellow-700'
-      default: return 'bg-gray-100 text-gray-700'
-    }
   }
 
   // Função para gerar cor gradiente baseada no nome da marca
@@ -69,14 +59,6 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
         
         {/* Conteúdo */}
         <div className="p-6 space-y-6">
-          {/* Status */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500">Status do pedido</span>
-            <span className={`text-sm font-medium px-3 py-1 rounded-full ${getStatusColor(pedido.status)}`}>
-              {pedido.status}
-            </span>
-          </div>
-
           {/* Informações principais em grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Coluna 1 */}
@@ -137,7 +119,10 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Comissão</p>
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <Percent size={12} />
+                      Comissão ({pedido.comissaoPercentual}%)
+                    </p>
                     <p className="font-medium text-green-600 text-lg">
                       {formatCurrency(pedido.valorComissao)}
                     </p>

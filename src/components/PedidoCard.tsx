@@ -1,4 +1,3 @@
-// components/PedidoCard.tsx
 'use client'
 
 import { User, Paperclip, Eye, Edit2, Trash2 } from 'lucide-react'
@@ -12,14 +11,6 @@ interface PedidoCardProps {
 }
 
 export default function PedidoCard({ pedido, onView, onEdit, onDelete }: PedidoCardProps) {
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'Entregue': return 'bg-green-100 text-green-700'
-      case 'Processando': return 'bg-yellow-100 text-yellow-700'
-      default: return 'bg-gray-100 text-gray-700'
-    }
-  }
-
   // Função para gerar cor gradiente baseada no nome da marca
   const getAvatarColor = (marcaNome: string) => {
     const cores = [
@@ -62,11 +53,6 @@ export default function PedidoCard({ pedido, onView, onEdit, onDelete }: PedidoC
               </div>
             </div>
           </div>
-          
-          {/* Status */}
-          <span className={`text-xs font-medium px-3 py-1 rounded-full ${getStatusColor(pedido.status)}`}>
-            {pedido.status}
-          </span>
         </div>
 
         {/* Detalhes do Pedido */}
@@ -97,7 +83,7 @@ export default function PedidoCard({ pedido, onView, onEdit, onDelete }: PedidoC
 
           {/* Comissão */}
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Comissão:</span>
+            <span className="text-gray-500">Comissão ({pedido.comissaoPercentual}%):</span>
             <span className="font-medium text-green-600">
               {formatCurrency(pedido.valorComissao)}
             </span>
