@@ -6,12 +6,12 @@ import {
   ShoppingBag, 
   DollarSign, 
   Percent,
-  TrendingUp,
-  Calendar
+  AlertCircle
 } from 'lucide-react'
-import { RelatorioGeral, MarcaRelatorio, DadosGrafico } from '@/types/relatorio'
+import { RelatorioGeral, DadosGrafico } from '@/types/relatorio'
 import GraficoPizza from '@/components/GraficoPizza'
 import TabelaRelatorioMarcas from '@/components/TabelaRelatorioMarcas'
+import { buscarRelatorio } from '@/services/relatorioService'
 
 // Componente de Card de Resumo
 const SummaryCard = ({ title, value, icon: Icon, color, trend }: any) => (
@@ -32,28 +32,52 @@ const SummaryCard = ({ title, value, icon: Icon, color, trend }: any) => (
 )
 
 export default function RelatoriosPage() {
-  const [periodo, setPeriodo] = useState('30')
   const [marcaSelecionada, setMarcaSelecionada] = useState('todas')
-  
-  // Dados mockados
-  const [dados, setDados] = useState<RelatorioGeral>({
-    totalPedidos: 156,
-    totalPares: 342,
-    valorTotalVendas: 45678.90,
-    valorTotalComissao: 6851.84,
-    vendasPorMarca: [
-      { id: '1', nome: 'Nike', totalPedidos: 45, totalPares: 98, valorTotalVendas: 15678.50, valorTotalComissao: 2351.78 },
-      { id: '2', nome: 'Adidas', totalPedidos: 38, totalPares: 84, valorTotalVendas: 12345.60, valorTotalComissao: 1851.84 },
-      { id: '3', nome: 'Puma', totalPedidos: 28, totalPares: 62, valorTotalVendas: 9876.40, valorTotalComissao: 1481.46 },
-      { id: '4', nome: 'Vans', totalPedidos: 22, totalPares: 48, valorTotalVendas: 5678.90, valorTotalComissao: 851.84 },
-      { id: '5', nome: 'Oakley', totalPedidos: 15, totalPares: 32, valorTotalVendas: 3456.70, valorTotalComissao: 518.51 },
-      { id: '6', nome: 'New Balance', totalPedidos: 8, totalPares: 18, valorTotalVendas: 2345.80, valorTotalComissao: 351.87 }
-    ]
-  })
+
+  const [dados, setDados] = useState<RelatorioGeral | null>(null)
+  const [carregando, setCarregando] = useState(true)
+  const [erroCarregamento, setErroCarregamento] = useState('')
+
+  // Carrega os dados reais do backend ao abrir a página
+  useEffect(() => {
+    buscarRelatorio()
+      .then(setDados)
+      .catch(() => setErroCarregamento('Não foi possível carregar o relatório. Tente recarregar a página.'))
+      .finally(() => setCarregando(false))
+  }, [])
+
+  // Formatação de valores
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    })
+  }
+
+  const formatNumber = (value: number) => {
+    return value.toLocaleString('pt-BR')
+  }
+
+  if (carregando) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (erroCarregamento || !dados) {
+    return (
+      <div className="p-6 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
+        <AlertCircle size={20} />
+        <span>{erroCarregamento || 'Não foi possível carregar o relatório.'}</span>
+      </div>
+    )
+  }
 
   // Preparar dados para os gráficos
   const cores = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#EC4899', '#14B8A6', '#F97316']
-  
+
   const dadosGraficoPares: DadosGrafico[] = dados.vendasPorMarca.map((marca, index) => ({
     name: marca.nome,
     value: marca.totalPares,
@@ -71,18 +95,6 @@ export default function RelatoriosPage() {
     value: marca.valorTotalComissao,
     color: cores[index % cores.length]
   }))
-
-  // Formatação de valores
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    })
-  }
-
-  const formatNumber = (value: number) => {
-    return value.toLocaleString('pt-BR')
-  }
 
   return (
     <div className="space-y-8">
