@@ -28,8 +28,9 @@ public class MarcaController {
     private final UsuarioService usuarioService;
 
     @GetMapping
-    public ResponseEntity<List<Marca>> getAllMarcas() {
-        return ResponseEntity.ok(marcaService.getAllMarcas());
+    public ResponseEntity<List<Marca>> getAllMarcas(Authentication authentication) {
+        Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
+        return ResponseEntity.ok(marcaService.getAllMarcas(usuarioLogado.getId()));
     }
 
     @GetMapping("/{id}")
@@ -43,7 +44,6 @@ public class MarcaController {
 
     @PostMapping
     public ResponseEntity<Marca> createMarca(Authentication authentication, @RequestBody Marca marca) {
-        // O dono da marca é sempre o usuário autenticado
         Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
         marca.setUsuario(usuarioLogado);
 

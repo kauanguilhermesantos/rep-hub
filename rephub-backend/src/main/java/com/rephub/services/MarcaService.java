@@ -2,13 +2,17 @@ package com.rephub.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import com.rephub.models.Marca;
+import com.rephub.models.Pedido;
 import com.rephub.models.Usuario;
 import com.rephub.repositories.MarcaRepository;
+import com.rephub.repositories.PedidoRepository;
 import com.rephub.repositories.UsuarioRepository;
 
 import lombok.AllArgsConstructor;
@@ -18,9 +22,27 @@ import lombok.AllArgsConstructor;
 public class MarcaService {
     private MarcaRepository marcaRepository;
     private UsuarioRepository usuarioRepository;
+    private PedidoRepository pedidoRepository;
 
-    public List<Marca> getAllMarcas() {
-        return marcaRepository.findAll();
+    /**
+     * Retorna todas as marcas com o totalPedidos calculado na hora, contando
+     * apenas os pedidos do usuário informado (nunca confiamos em um contador
+     * salvo, que ficaria desatualizado a cada pedido criado/editado/excluído).
+     */
+    public List<Marca> getAllMarcas(String usuarioId) {
+        List<Marca> marcas = marcaRepository.findAll();
+        List<Pedido> pedidosDoUsuario = pedidoRepository.findByUsuario_Id(usuarioId);
+
+        Map<String, Long> contagemPorMarca = pedidosDoUsuario.stream()
+                .filter(p -> p.getMarca() != null && p.getMarca().getId() != null)
+                .collect(Collectors.groupingBy(p -> p.getMarca().getId(), Collectors.counting()));
+
+        marcas.forEach(marca -> {
+            long total = contagemPorMarca.getOrDefault(marca.getId(), 0L);
+            marca.setTotalPedidos((int) total);
+        });
+
+        return marcas;
     }
 
     public Marca findById(String id) {
@@ -28,7 +50,6 @@ public class MarcaService {
     }
 
     public Marca createMarca(Marca marca) {
-        // Carrega o usuário associado à marca, se necessário
         if (marca.getUsuario() != null && marca.getUsuario().getId() != null) {
             Usuario usuario = usuarioRepository.findById(marca.getUsuario().getId()).orElse(null);
             marca.setUsuario(usuario);
@@ -38,6 +59,8 @@ public class MarcaService {
             marca.setDataCadastro(LocalDateTime.now());
         }
 
+        // Esse valor é só o inicial no banco — na leitura (getAllMarcas),
+        // o total real é sempre recalculado a partir dos pedidos.
         if (marca.getTotalPedidos() == null) {
             marca.setTotalPedidos(0);
         }
@@ -55,10 +78,6 @@ public class MarcaService {
             return null;
         }
 
-        // Preserva campos que essa rota não deve alterar. Sem isso, o
-        // BeanUtils.copyProperties abaixo sobrescreveria com "null" qualquer
-        // campo que o cliente não tenha enviado no corpo da requisição
-        // (ex: editar só o nome apagaria totalPedidos e o vínculo com o usuário).
         marca.setDataCadastro(existingMarca.getDataCadastro());
         marca.setUsuario(existingMarca.getUsuario());
         if (marca.getTotalPedidos() == null) {
