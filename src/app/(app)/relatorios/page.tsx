@@ -11,6 +11,7 @@ import {
 import { RelatorioGeral, DadosGrafico } from '@/types/relatorio'
 import GraficoPizza from '@/components/GraficoPizza'
 import TabelaRelatorioMarcas from '@/components/TabelaRelatorioMarcas'
+import FiltroPeriodo, { PeriodoSelecionado } from '@/components/Filtroperiodo'
 import { buscarRelatorio } from '@/services/relatorioService'
 
 // Componente de Card de Resumo
@@ -38,13 +39,23 @@ export default function RelatoriosPage() {
   const [carregando, setCarregando] = useState(true)
   const [erroCarregamento, setErroCarregamento] = useState('')
 
-  // Carrega os dados reais do backend ao abrir a página
-  useEffect(() => {
-    buscarRelatorio()
+  function carregarRelatorio(inicio?: string, fim?: string) {
+    setCarregando(true)
+    setErroCarregamento('')
+    buscarRelatorio(inicio, fim)
       .then(setDados)
       .catch(() => setErroCarregamento('Não foi possível carregar o relatório. Tente recarregar a página.'))
       .finally(() => setCarregando(false))
+  }
+
+  // Carrega o relatório completo (sem filtro) ao abrir a página
+  useEffect(() => {
+    carregarRelatorio()
   }, [])
+
+  function handlePeriodoChange(periodo: PeriodoSelecionado) {
+    carregarRelatorio(periodo.inicio, periodo.fim)
+  }
 
   // Formatação de valores
   const formatCurrency = (value: number) => {
@@ -58,39 +69,22 @@ export default function RelatoriosPage() {
     return value.toLocaleString('pt-BR')
   }
 
-  if (carregando) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  if (erroCarregamento || !dados) {
-    return (
-      <div className="p-6 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
-        <AlertCircle size={20} />
-        <span>{erroCarregamento || 'Não foi possível carregar o relatório.'}</span>
-      </div>
-    )
-  }
-
-  // Preparar dados para os gráficos
+  // Preparar dados para os gráficos (mesmo durante o carregamento, evita remount do filtro)
   const cores = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#EC4899', '#14B8A6', '#F97316']
 
-  const dadosGraficoPares: DadosGrafico[] = dados.vendasPorMarca.map((marca, index) => ({
+  const dadosGraficoPares: DadosGrafico[] = (dados?.vendasPorMarca ?? []).map((marca, index) => ({
     name: marca.nome,
     value: marca.totalPares,
     color: cores[index % cores.length]
   }))
 
-  const dadosGraficoPedidos: DadosGrafico[] = dados.vendasPorMarca.map((marca, index) => ({
+  const dadosGraficoPedidos: DadosGrafico[] = (dados?.vendasPorMarca ?? []).map((marca, index) => ({
     name: marca.nome,
     value: marca.totalPedidos,
     color: cores[index % cores.length]
   }))
 
-  const dadosGraficoComissao: DadosGrafico[] = dados.vendasPorMarca.map((marca, index) => ({
+  const dadosGraficoComissao: DadosGrafico[] = (dados?.vendasPorMarca ?? []).map((marca, index) => ({
     name: marca.nome,
     value: marca.valorTotalComissao,
     color: cores[index % cores.length]
@@ -108,59 +102,77 @@ export default function RelatoriosPage() {
         </div>
       </div>
 
-      {/* Cards de Resumo */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <SummaryCard 
-          title="Total de Pedidos" 
-          value={formatNumber(dados.totalPedidos)} 
-          icon={Package} 
-          color="blue" 
-        />
-        <SummaryCard 
-          title="Total de Pares" 
-          value={formatNumber(dados.totalPares)} 
-          icon={ShoppingBag} 
-          color="green" 
-        />
-        <SummaryCard 
-          title="Valor em Vendas" 
-          value={formatCurrency(dados.valorTotalVendas)} 
-          icon={DollarSign} 
-          color="yellow" 
-        />
-        <SummaryCard 
-          title="Comissão Total" 
-          value={formatCurrency(dados.valorTotalComissao)} 
-          icon={Percent} 
-          color="purple" 
-        />
-      </div>
+      {/* Filtro de período */}
+      <FiltroPeriodo onChange={handlePeriodoChange} />
 
-      {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <GraficoPizza 
-          dados={dadosGraficoPares} 
-          titulo="Pares por Marca" 
-          valorFormatado={(value) => `${value} pares`}
-        />
-        <GraficoPizza 
-          dados={dadosGraficoPedidos} 
-          titulo="Pedidos por Marca"
-          valorFormatado={(value) => `${value} pedidos`}
-        />
-        <GraficoPizza 
-          dados={dadosGraficoComissao} 
-          titulo="Comissões por Marca"
-          valorFormatado={(value) => formatCurrency(value)}
-        />
-      </div>
+      {erroCarregamento && (
+        <div className="p-4 rounded-lg flex items-center gap-2 bg-red-50 text-red-700">
+          <AlertCircle size={20} />
+          <span>{erroCarregamento}</span>
+        </div>
+      )}
 
-      {/* Tabela de Detalhamento */}
-      <TabelaRelatorioMarcas 
-        marcas={dados.vendasPorMarca}
-        marcaSelecionada={marcaSelecionada}
-        onMarcaChange={setMarcaSelecionada}
-      />
+      {carregando ? (
+        <div className="flex items-center justify-center py-24">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : dados && (
+        <>
+          {/* Cards de Resumo */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <SummaryCard 
+              title="Total de Pedidos" 
+              value={formatNumber(dados.totalPedidos)} 
+              icon={Package} 
+              color="blue" 
+            />
+            <SummaryCard 
+              title="Total de Pares" 
+              value={formatNumber(dados.totalPares)} 
+              icon={ShoppingBag} 
+              color="green" 
+            />
+            <SummaryCard 
+              title="Valor em Vendas" 
+              value={formatCurrency(dados.valorTotalVendas)} 
+              icon={DollarSign} 
+              color="yellow" 
+            />
+            <SummaryCard 
+              title="Comissão Total" 
+              value={formatCurrency(dados.valorTotalComissao)} 
+              icon={Percent} 
+              color="purple" 
+            />
+          </div>
+
+          {/* Gráficos */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <GraficoPizza 
+              dados={dadosGraficoPares} 
+              titulo="Pares por Marca" 
+              valorFormatado={(value) => `${value} pares`}
+            />
+            <GraficoPizza 
+              dados={dadosGraficoPedidos} 
+              titulo="Pedidos por Marca"
+              valorFormatado={(value) => `${value} pedidos`}
+            />
+            <GraficoPizza 
+              dados={dadosGraficoComissao} 
+              titulo="Comissões por Marca"
+              valorFormatado={(value) => formatCurrency(value)}
+            />
+          </div>
+
+          {/* Tabela de Detalhamento */}
+          <TabelaRelatorioMarcas 
+            marcas={dados.vendasPorMarca}
+            marcaSelecionada={marcaSelecionada}
+            onMarcaChange={setMarcaSelecionada}
+          />
+        </>
+      )}
     </div>
   )
 }

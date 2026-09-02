@@ -1,5 +1,6 @@
 package com.rephub.services;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,9 +20,12 @@ import lombok.AllArgsConstructor;
 public class RelatorioService {
     private final PedidoRepository pedidoRepository;
 
-    // Agrega os pedidos do usuário por marca, e calcula os totais gerais
-    public RelatorioGeralResponse gerarRelatorio(String usuarioId) {
-        List<Pedido> pedidos = pedidoRepository.findByUsuario_Id(usuarioId);
+    // Agrega os pedidos do usuário por marca, e calcula os totais gerais.
+    // Se inicio/fim forem nulos, considera todos os pedidos (sem filtro de data).
+    public RelatorioGeralResponse gerarRelatorio(String usuarioId, LocalDateTime inicio, LocalDateTime fim) {
+        List<Pedido> pedidos = (inicio != null && fim != null)
+                ? pedidoRepository.findByUsuario_IdAndDataCadastroBetween(usuarioId, inicio, fim)
+                : pedidoRepository.findByUsuario_Id(usuarioId);
 
         Map<String, MarcaRelatorioResponse> agregadoPorMarca = new LinkedHashMap<>();
 
