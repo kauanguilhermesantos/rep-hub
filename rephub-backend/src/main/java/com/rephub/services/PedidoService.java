@@ -24,9 +24,10 @@ public class PedidoService {
     private MarcaRepository marcaRepository;
     private UsuarioRepository usuarioRepository;
 
-    // Retorna apenas os pedidos do usuário informado, já com usuário e marca enriquecidos
+    // Retorna apenas os pedidos do usuário informado, do mais recente para o mais
+    // antigo, já com usuário e marca enriquecidos
     public List<Pedido> getPedidosDoUsuario(String usuarioId) {
-        return pedidoRepository.findByUsuario_Id(usuarioId).stream()
+        return pedidoRepository.findByUsuario_IdOrderByDataCadastroDesc(usuarioId).stream()
                 .map(this::enriquecer)
                 .collect(Collectors.toList());
     }
