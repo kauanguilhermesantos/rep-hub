@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rephub.models.Pedido;
@@ -33,6 +34,17 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.getPedidosDoUsuario(usuarioLogado.getId()));
     }
 
+    // Últimos pedidos do usuário logado, ordenados por data (mais recente primeiro).
+    // Usado no dashboard. Ex: /api/pedidos/recentes?limit=5
+    @GetMapping("/recentes")
+    public ResponseEntity<List<Pedido>> getPedidosRecentes(
+            Authentication authentication,
+            @RequestParam(defaultValue = "5") int limit
+    ) {
+        Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
+        return ResponseEntity.ok(pedidoService.getPedidosRecentes(usuarioLogado.getId(), limit));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Pedido> getPedidoById(Authentication authentication, @PathVariable String id) {
         Pedido pedido = pedidoService.findById(id);
@@ -44,7 +56,6 @@ public class PedidoController {
 
     @PostMapping
     public ResponseEntity<Pedido> createPedido(Authentication authentication, @RequestBody Pedido pedido) {
-        // O dono do pedido é sempre o usuário autenticado
         Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
         pedido.setUsuario(usuarioLogado);
 
@@ -74,7 +85,6 @@ public class PedidoController {
         return ResponseEntity.noContent().build();
     }
 
-    // Garante que o usuário só consiga ler/editar/excluir os próprios pedidos
     private boolean pertenceAoUsuario(Pedido pedido, Authentication authentication) {
         return pedido.getUsuario() != null
                 && pedido.getUsuario().getEmail() != null

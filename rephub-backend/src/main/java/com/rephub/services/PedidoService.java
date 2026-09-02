@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.rephub.models.Marca;
@@ -25,6 +27,14 @@ public class PedidoService {
     // Retorna apenas os pedidos do usuário informado, já com usuário e marca enriquecidos
     public List<Pedido> getPedidosDoUsuario(String usuarioId) {
         return pedidoRepository.findByUsuario_Id(usuarioId).stream()
+                .map(this::enriquecer)
+                .collect(Collectors.toList());
+    }
+
+    // Retorna os "limite" pedidos mais recentes do usuário, já ordenados pelo backend
+    public List<Pedido> getPedidosRecentes(String usuarioId, int limite) {
+        Pageable pageable = PageRequest.of(0, limite);
+        return pedidoRepository.findByUsuario_IdOrderByDataCadastroDesc(usuarioId, pageable).stream()
                 .map(this::enriquecer)
                 .collect(Collectors.toList());
     }

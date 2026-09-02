@@ -76,6 +76,16 @@ export async function listarPedidos(): Promise<Pedido[]> {
   return data.map(mapPedido)
 }
 
+// Últimos pedidos do usuário logado, já ordenados pelo backend (mais recente primeiro)
+export async function listarPedidosRecentes(limite = 5): Promise<Pedido[]> {
+  const response = await authFetch(`/api/pedidos/recentes?limit=${limite}`)
+  if (!response.ok) {
+    throw new Error("Não foi possível carregar os pedidos recentes")
+  }
+  const data: PedidoApi[] = await response.json()
+  return data.map(mapPedido)
+}
+
 export async function criarPedido(payload: PedidoFormPayload): Promise<Pedido> {
   const response = await authFetch("/api/pedidos", {
     method: "POST",
