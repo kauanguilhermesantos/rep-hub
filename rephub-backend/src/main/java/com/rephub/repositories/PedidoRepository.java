@@ -14,5 +14,6 @@ public interface PedidoRepository extends MongoRepository<Pedido, String> {
     List<Pedido> findByUsuario_Id(String usuarioId);
     List<Pedido> findByUsuario_IdOrderByDataCadastroDesc(String usuarioId);
     List<Pedido> findByUsuario_IdAndDataCadastroBetween(String usuarioId, LocalDateTime inicio, LocalDateTime fim);
+    List<Pedido> findByUsuario_IdAndDataCadastroBetweenOrderByDataCadastroDesc(String usuarioId, LocalDateTime inicio, LocalDateTime fim);
     List<Pedido> findByUsuario_IdOrderByDataCadastroDesc(String usuarioId, Pageable pageable);
 }

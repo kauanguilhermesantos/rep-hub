@@ -67,8 +67,13 @@ function buildBody(payload: PedidoFormPayload) {
   }
 }
 
-export async function listarPedidos(): Promise<Pedido[]> {
-  const response = await authFetch("/api/pedidos")
+export async function listarPedidos(inicio?: string, fim?: string): Promise<Pedido[]> {
+  const params = new URLSearchParams()
+  if (inicio) params.set('inicio', inicio)
+  if (fim) params.set('fim', fim)
+  const query = params.toString() ? `?${params.toString()}` : ''
+
+  const response = await authFetch(`/api/pedidos${query}`)
   if (!response.ok) {
     throw new Error("Não foi possível carregar os pedidos")
   }

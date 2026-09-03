@@ -1,5 +1,8 @@
 package com.rephub.controllers;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -28,10 +31,19 @@ public class PedidoController {
     private final PedidoService pedidoService;
     private final UsuarioService usuarioService;
 
+    // inicio/fim opcionais, no formato yyyy-MM-dd. Sem eles, retorna todos os pedidos.
     @GetMapping
-    public ResponseEntity<List<Pedido>> getAllPedidos(Authentication authentication) {
+    public ResponseEntity<List<Pedido>> getAllPedidos(
+            Authentication authentication,
+            @RequestParam(required = false) String inicio,
+            @RequestParam(required = false) String fim
+    ) {
         Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
-        return ResponseEntity.ok(pedidoService.getPedidosDoUsuario(usuarioLogado.getId()));
+
+        LocalDateTime dataInicio = inicio != null ? LocalDate.parse(inicio).atStartOfDay() : null;
+        LocalDateTime dataFim = fim != null ? LocalDate.parse(fim).atTime(LocalTime.MAX) : null;
+
+        return ResponseEntity.ok(pedidoService.getPedidosDoUsuario(usuarioLogado.getId(), dataInicio, dataFim));
     }
 
     // Últimos pedidos do usuário logado, ordenados por data (mais recente primeiro).

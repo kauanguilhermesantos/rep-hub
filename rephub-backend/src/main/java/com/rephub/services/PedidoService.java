@@ -25,9 +25,14 @@ public class PedidoService {
     private UsuarioRepository usuarioRepository;
 
     // Retorna apenas os pedidos do usuário informado, do mais recente para o mais
-    // antigo, já com usuário e marca enriquecidos
-    public List<Pedido> getPedidosDoUsuario(String usuarioId) {
-        return pedidoRepository.findByUsuario_IdOrderByDataCadastroDesc(usuarioId).stream()
+    // antigo, já com usuário e marca enriquecidos. Se inicio/fim forem informados,
+    // filtra pela data de cadastro.
+    public List<Pedido> getPedidosDoUsuario(String usuarioId, LocalDateTime inicio, LocalDateTime fim) {
+        List<Pedido> pedidos = (inicio != null && fim != null)
+                ? pedidoRepository.findByUsuario_IdAndDataCadastroBetweenOrderByDataCadastroDesc(usuarioId, inicio, fim)
+                : pedidoRepository.findByUsuario_IdOrderByDataCadastroDesc(usuarioId);
+
+        return pedidos.stream()
                 .map(this::enriquecer)
                 .collect(Collectors.toList());
     }
