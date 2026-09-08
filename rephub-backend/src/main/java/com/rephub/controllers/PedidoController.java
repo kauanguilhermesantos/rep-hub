@@ -1,8 +1,5 @@
 package com.rephub.controllers;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -17,12 +14,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rephub.dto.PedidoRequest;
+import com.rephub.models.Marca;
 import com.rephub.models.Pedido;
 import com.rephub.models.Usuario;
 import com.rephub.services.PedidoService;
 import com.rephub.services.UsuarioService;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @RestController
 @AllArgsConstructor
@@ -31,7 +35,6 @@ public class PedidoController {
     private final PedidoService pedidoService;
     private final UsuarioService usuarioService;
 
-    // inicio/fim opcionais, no formato yyyy-MM-dd. Sem eles, retorna todos os pedidos.
     @GetMapping
     public ResponseEntity<List<Pedido>> getAllPedidos(
             Authentication authentication,
@@ -46,8 +49,6 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.getPedidosDoUsuario(usuarioLogado.getId(), dataInicio, dataFim));
     }
 
-    // Últimos pedidos do usuário logado, ordenados por data (mais recente primeiro).
-    // Usado no dashboard. Ex: /api/pedidos/recentes?limit=5
     @GetMapping("/recentes")
     public ResponseEntity<List<Pedido>> getPedidosRecentes(
             Authentication authentication,
@@ -67,8 +68,10 @@ public class PedidoController {
     }
 
     @PostMapping
-    public ResponseEntity<Pedido> createPedido(Authentication authentication, @RequestBody Pedido pedido) {
+    public ResponseEntity<Pedido> createPedido(Authentication authentication, @Valid @RequestBody PedidoRequest request) {
         Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
+
+        Pedido pedido = montarPedido(request);
         pedido.setUsuario(usuarioLogado);
 
         Pedido novoPedido = pedidoService.createPedido(pedido);
@@ -76,13 +79,15 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Pedido> updatePedidoById(Authentication authentication, @PathVariable String id, @RequestBody Pedido pedido) {
+    public ResponseEntity<Pedido> updatePedidoById(Authentication authentication, @PathVariable String id, @Valid @RequestBody PedidoRequest request) {
         Pedido existente = pedidoService.findById(id);
         if (existente == null || !pertenceAoUsuario(existente, authentication)) {
             return ResponseEntity.notFound().build();
         }
 
+        Pedido pedido = montarPedido(request);
         pedido.setId(id);
+
         Pedido pedidoAtualizado = pedidoService.updatePedido(pedido);
         return ResponseEntity.ok(pedidoAtualizado);
     }
@@ -95,6 +100,23 @@ public class PedidoController {
         }
         pedidoService.deletePedido(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private Pedido montarPedido(PedidoRequest request) {
+        Pedido pedido = new Pedido();
+
+        Marca marcaRef = new Marca();
+        marcaRef.setId(request.getMarca().getId());
+        pedido.setMarca(marcaRef);
+
+        pedido.setCliente(request.getCliente());
+        pedido.setQuantPares(request.getQuantPares());
+        pedido.setValorTotal(request.getValorTotal());
+        pedido.setComissaoPercentual(request.getComissaoPercentual());
+        pedido.setValorComissao(request.getValorComissao());
+        pedido.setCondicaoPagamento(request.getCondicaoPagamento());
+
+        return pedido;
     }
 
     private boolean pertenceAoUsuario(Pedido pedido, Authentication authentication) {

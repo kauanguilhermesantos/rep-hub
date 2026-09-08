@@ -1,3 +1,5 @@
+import { lancarErroApi } from "@/lib/ApiError"
+
 const TOKEN_KEY = "rephub_token"
 
 interface LoginResponse {
@@ -24,17 +26,14 @@ export async function register(payload: RegisterPayload) {
   })
 
   if (!response.ok) {
-    if (response.status === 409) {
-      throw new Error("Já existe uma conta com esse e-mail")
-    }
-    throw new Error("Não foi possível criar a conta")
+    await lancarErroApi(response, "Não foi possível criar a conta")
   }
 
   return response.json()
 }
 
 // Salva o token no localStorage (usado pelo authFetch) e num cookie
-// (lido pelo middleware.ts para proteger rotas)
+// (lido pelo middleware.ts para proteção de rotas)
 export function updateToken(token: string) {
   localStorage.setItem(TOKEN_KEY, token)
   document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`
@@ -48,7 +47,7 @@ export async function login(email: string, senha: string): Promise<LoginResponse
   })
 
   if (!response.ok) {
-    throw new Error("E-mail ou senha inválidos")
+    await lancarErroApi(response, "E-mail ou senha inválidos")
   }
 
   const data: LoginResponse = await response.json()

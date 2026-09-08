@@ -1,4 +1,5 @@
 import { authFetch, updateToken, logout } from "@/lib/Auth"
+import { lancarErroApi } from "@/lib/ApiError"
 import { Usuario } from "@/types/usuario"
 
 // Busca os dados do usuário atualmente logado
@@ -6,7 +7,7 @@ export async function getMe(): Promise<Usuario> {
   const response = await authFetch("/api/usuarios/me")
 
   if (!response.ok) {
-    throw new Error("Não foi possível carregar seus dados")
+    await lancarErroApi(response, "Não foi possível carregar seus dados")
   }
 
   return response.json()
@@ -31,10 +32,7 @@ export async function updateMe(payload: AtualizarPerfilPayload): Promise<Usuario
   })
 
   if (!response.ok) {
-    if (response.status === 409) {
-      throw new Error("Já existe uma conta com esse e-mail")
-    }
-    throw new Error("Não foi possível salvar as alterações")
+    await lancarErroApi(response, "Não foi possível salvar as alterações")
   }
 
   const data: AtualizarPerfilResponse = await response.json()
@@ -54,8 +52,7 @@ export async function alterarSenha(senhaAtual: string, novaSenha: string): Promi
   })
 
   if (!response.ok) {
-    const texto = await response.text()
-    throw new Error(texto || "Não foi possível alterar a senha")
+    await lancarErroApi(response, "Não foi possível alterar a senha")
   }
 }
 
@@ -68,8 +65,7 @@ export async function excluirConta(senha: string): Promise<void> {
   })
 
   if (!response.ok) {
-    const texto = await response.text()
-    throw new Error(texto || "Não foi possível excluir a conta")
+    await lancarErroApi(response, "Não foi possível excluir a conta")
   }
 
   logout()

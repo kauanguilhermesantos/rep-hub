@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.rephub.dto.AlterarSenhaRequest;
 import com.rephub.dto.AtualizarPerfilRequest;
 import com.rephub.dto.AtualizarPerfilResponse;
+import com.rephub.dto.CriarUsuarioRequest;
 import com.rephub.dto.ExcluirContaRequest;
 import com.rephub.exceptions.SenhaInvalidaException;
 import com.rephub.models.Usuario;
@@ -25,6 +26,7 @@ import com.rephub.security.CustomUserDetailsService;
 import com.rephub.security.JwtService;
 import com.rephub.services.UsuarioService;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
@@ -55,7 +57,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<?> updateMe(Authentication authentication, @RequestBody AtualizarPerfilRequest request) {
+    public ResponseEntity<?> updateMe(Authentication authentication, @Valid @RequestBody AtualizarPerfilRequest request) {
         String emailAtual = authentication.getName();
         boolean emailAlterado = request.getEmail() != null
                 && !request.getEmail().equalsIgnoreCase(emailAtual);
@@ -80,9 +82,8 @@ public class UsuarioController {
         return ResponseEntity.ok(new AtualizarPerfilResponse(usuarioAtualizado, novoToken));
     }
 
-    // Troca a senha do usuário logado, exigindo a senha atual como confirmação
     @PutMapping("/me/senha")
-    public ResponseEntity<?> alterarSenha(Authentication authentication, @RequestBody AlterarSenhaRequest request) {
+    public ResponseEntity<?> alterarSenha(Authentication authentication, @Valid @RequestBody AlterarSenhaRequest request) {
         try {
             usuarioService.alterarSenha(authentication.getName(), request.getSenhaAtual(), request.getNovaSenha());
         } catch (SenhaInvalidaException e) {
@@ -91,9 +92,8 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
-    // Exclui a conta do usuário logado, exigindo a senha como confirmação
     @DeleteMapping("/me")
-    public ResponseEntity<?> excluirMinhaConta(Authentication authentication, @RequestBody ExcluirContaRequest request) {
+    public ResponseEntity<?> excluirMinhaConta(Authentication authentication, @Valid @RequestBody ExcluirContaRequest request) {
         try {
             usuarioService.excluirConta(authentication.getName(), request.getSenha());
         } catch (SenhaInvalidaException e) {
@@ -103,7 +103,13 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public ResponseEntity<Usuario> createUsuario(@RequestBody Usuario usuario) {
+    public ResponseEntity<Usuario> createUsuario(@Valid @RequestBody CriarUsuarioRequest request) {
+        Usuario usuario = new Usuario();
+        usuario.setNomeCompleto(request.getNomeCompleto());
+        usuario.setEmail(request.getEmail());
+        usuario.setSenha(request.getSenha());
+        usuario.setTelefone(request.getTelefone());
+
         return ResponseEntity.ok(usuarioService.createUsuario(usuario));
     }
 

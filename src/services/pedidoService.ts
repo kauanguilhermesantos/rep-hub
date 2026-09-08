@@ -1,4 +1,5 @@
 import { authFetch } from "@/lib/Auth"
+import { lancarErroApi } from "@/lib/ApiError"
 import { formatarData } from "@/lib/formatoHora"
 import { Pedido } from "@/app/(app)/pedidos/page"
 
@@ -75,7 +76,7 @@ export async function listarPedidos(inicio?: string, fim?: string): Promise<Pedi
 
   const response = await authFetch(`/api/pedidos${query}`)
   if (!response.ok) {
-    throw new Error("Não foi possível carregar os pedidos")
+    await lancarErroApi(response, "Não foi possível carregar os pedidos")
   }
   const data: PedidoApi[] = await response.json()
   return data.map(mapPedido)
@@ -85,7 +86,7 @@ export async function listarPedidos(inicio?: string, fim?: string): Promise<Pedi
 export async function listarPedidosRecentes(limite = 5): Promise<Pedido[]> {
   const response = await authFetch(`/api/pedidos/recentes?limit=${limite}`)
   if (!response.ok) {
-    throw new Error("Não foi possível carregar os pedidos recentes")
+    await lancarErroApi(response, "Não foi possível carregar os pedidos recentes")
   }
   const data: PedidoApi[] = await response.json()
   return data.map(mapPedido)
@@ -97,7 +98,7 @@ export async function criarPedido(payload: PedidoFormPayload): Promise<Pedido> {
     body: JSON.stringify(buildBody(payload)),
   })
   if (!response.ok) {
-    throw new Error("Não foi possível criar o pedido")
+    await lancarErroApi(response, "Não foi possível criar o pedido")
   }
   const data: PedidoApi = await response.json()
   return mapPedido(data)
@@ -109,7 +110,7 @@ export async function editarPedido(id: string, payload: PedidoFormPayload): Prom
     body: JSON.stringify(buildBody(payload)),
   })
   if (!response.ok) {
-    throw new Error("Não foi possível salvar as alterações")
+    await lancarErroApi(response, "Não foi possível salvar as alterações")
   }
   const data: PedidoApi = await response.json()
   return mapPedido(data)
@@ -118,6 +119,6 @@ export async function editarPedido(id: string, payload: PedidoFormPayload): Prom
 export async function excluirPedido(id: string): Promise<void> {
   const response = await authFetch(`/api/pedidos/${id}`, { method: "DELETE" })
   if (!response.ok) {
-    throw new Error("Não foi possível excluir o pedido")
+    await lancarErroApi(response, "Não foi possível excluir o pedido")
   }
 }

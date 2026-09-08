@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rephub.dto.MarcaRequest;
 import com.rephub.models.Marca;
 import com.rephub.models.Usuario;
 import com.rephub.services.MarcaService;
 import com.rephub.services.UsuarioService;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
@@ -43,20 +45,25 @@ public class MarcaController {
     }
 
     @PostMapping
-    public ResponseEntity<Marca> createMarca(Authentication authentication, @RequestBody Marca marca) {
+    public ResponseEntity<Marca> createMarca(Authentication authentication, @Valid @RequestBody MarcaRequest request) {
         Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
+
+        Marca marca = new Marca();
+        marca.setNome(request.getNome());
         marca.setUsuario(usuarioLogado);
 
         return ResponseEntity.ok(marcaService.createMarca(marca));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Marca> updateMarcaById(@PathVariable String id, @RequestBody Marca marca) {
+    public ResponseEntity<Marca> updateMarcaById(@PathVariable String id, @Valid @RequestBody MarcaRequest request) {
+        Marca marca = new Marca();
         marca.setId(id);
+        marca.setNome(request.getNome());
 
         Marca marcaAtualizada = marcaService.updateMarca(marca);
 
-        if(marcaAtualizada == null) {
+        if (marcaAtualizada == null) {
             return ResponseEntity.notFound().build();
         }
 

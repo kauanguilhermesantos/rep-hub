@@ -7,6 +7,7 @@ import com.rephub.repositories.UsuarioRepository;
 import com.rephub.security.CustomUserDetailsService;
 import com.rephub.security.JwtService;
 import com.rephub.services.UsuarioService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,15 +31,12 @@ public class AuthController {
     private final UsuarioService usuarioService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getSenha())
             );
         } catch (AuthenticationException e) {
-            // Captura qualquer falha de autenticação (credenciais erradas,
-            // usuário não encontrado, etc.) e responde 401 de forma consistente,
-            // em vez de deixar a exceção "vazar" e o Spring Security devolver 403.
             return ResponseEntity.status(401).body("E-mail ou senha inválidos");
         }
 
