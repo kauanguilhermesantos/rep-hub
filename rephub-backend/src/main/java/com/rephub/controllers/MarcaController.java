@@ -36,8 +36,9 @@ public class MarcaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Marca> getMarcaById(@PathVariable String id) {
-        Marca marca = marcaService.findById(id);
+    public ResponseEntity<Marca> getMarcaById(Authentication authentication, @PathVariable String id) {
+        Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
+        Marca marca = marcaService.findByIdDoUsuario(id, usuarioLogado.getId());
         if (marca == null) {
             return ResponseEntity.notFound().build();
         }
@@ -56,12 +57,13 @@ public class MarcaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Marca> updateMarcaById(@PathVariable String id, @Valid @RequestBody MarcaRequest request) {
+    public ResponseEntity<Marca> updateMarcaById(Authentication authentication, @PathVariable String id, @Valid @RequestBody MarcaRequest request) {
+        Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
         Marca marca = new Marca();
         marca.setId(id);
         marca.setNome(request.getNome());
 
-        Marca marcaAtualizada = marcaService.updateMarca(marca);
+        Marca marcaAtualizada = marcaService.updateMarca(marca, usuarioLogado.getId());
 
         if (marcaAtualizada == null) {
             return ResponseEntity.notFound().build();
@@ -71,8 +73,9 @@ public class MarcaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Marca> deleteMarcaById(@PathVariable String id) {
-        Marca marca = marcaService.deleteMarca(id);
+    public ResponseEntity<Marca> deleteMarcaById(Authentication authentication, @PathVariable String id) {
+        Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
+        Marca marca = marcaService.deleteMarca(id, usuarioLogado.getId());
         if (marca == null) {
             return ResponseEntity.notFound().build();
         }

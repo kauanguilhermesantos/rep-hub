@@ -77,7 +77,10 @@ public class PedidoService {
         }
 
         if (pedido.getMarca() != null && pedido.getMarca().getId() != null) {
-            Marca marca = marcaRepository.findById(pedido.getMarca().getId()).orElse(null);
+            String donoId = pedido.getUsuario() != null ? pedido.getUsuario().getId() : null;
+            Marca marca = marcaRepository.findById(pedido.getMarca().getId())
+                    .filter(m -> donoId != null && m.getUsuario() != null && donoId.equals(m.getUsuario().getId()))
+                    .orElseThrow(() -> new RuntimeException("Marca não encontrada!"));
             pedido.setMarca(marca);
         }
 
@@ -99,7 +102,9 @@ public class PedidoService {
         }
 
         if (pedido.getMarca() != null && pedido.getMarca().getId() != null) {
+            String donoId = existingPedido.getUsuario() != null ? existingPedido.getUsuario().getId() : null;
             Marca marca = marcaRepository.findById(pedido.getMarca().getId())
+                    .filter(m -> donoId != null && m.getUsuario() != null && donoId.equals(m.getUsuario().getId()))
                     .orElseThrow(() -> new RuntimeException("Marca não encontrada!"));
             existingPedido.setMarca(marca);
         }

@@ -3,6 +3,8 @@ services:
   frontend:
     build:
       context: .
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8080
       dockerfile: Dockerfile
     container_name: rephub-frontend
     ports:

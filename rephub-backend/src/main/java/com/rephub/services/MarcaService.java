@@ -25,12 +25,14 @@ public class MarcaService {
     private PedidoRepository pedidoRepository;
 
     /**
-     * Retorna todas as marcas com o totalPedidos calculado na hora, contando
+     * Retorna as marcas do usuário informado com o totalPedidos calculado na hora, contando
      * apenas os pedidos do usuário informado (nunca confiamos em um contador
      * salvo, que ficaria desatualizado a cada pedido criado/editado/excluído).
      */
     public List<Marca> getAllMarcas(String usuarioId) {
-        List<Marca> marcas = marcaRepository.findAll();
+        List<Marca> marcas = marcaRepository.findAll().stream()
+                .filter(m -> pertenceAoUsuario(m, usuarioId))
+                .collect(Collectors.toList());
         List<Pedido> pedidosDoUsuario = pedidoRepository.findByUsuario_Id(usuarioId);
 
         Map<String, Long> contagemPorMarca = pedidosDoUsuario.stream()
@@ -45,8 +47,23 @@ public class MarcaService {
         return marcas;
     }
 
+    /** Busca sem checar dono — uso interno. Para requisições, use findByIdDoUsuario. */
     public Marca findById(String id) {
         return marcaRepository.findById(id).orElse(null);
+    }
+
+    /** Retorna a marca só se pertencer ao usuário; caso contrário, null (vira 404). */
+    public Marca findByIdDoUsuario(String id, String usuarioId) {
+        Marca marca = marcaRepository.findById(id).orElse(null);
+        return pertenceAoUsuario(marca, usuarioId) ? marca : null;
+    }
+
+    /** Checagem explícita do dono, independente do mapeamento das consultas derivadas. */
+    public boolean pertenceAoUsuario(Marca marca, String usuarioId) {
+        return marca != null
+                && usuarioId != null
+                && marca.getUsuario() != null
+                && usuarioId.equals(marca.getUsuario().getId());
     }
 
     public Marca createMarca(Marca marca) {
@@ -68,12 +85,12 @@ public class MarcaService {
         return marcaRepository.save(marca);
     }
 
-    public Marca updateMarca(Marca marca) {
+    public Marca updateMarca(Marca marca, String usuarioId) {
         if (marca == null || marca.getId() == null) {
             return null;
         }
 
-        Marca existingMarca = findById(marca.getId());
+        Marca existingMarca = findByIdDoUsuario(marca.getId(), usuarioId);
         if (existingMarca == null) {
             return null;
         }
@@ -88,8 +105,8 @@ public class MarcaService {
         return marcaRepository.save(existingMarca);
     }
 
-    public Marca deleteMarca(String id) {
-        Marca marca = findById(id);
+    public Marca deleteMarca(String id, String usuarioId) {
+        Marca marca = findByIdDoUsuario(id, usuarioId);
         if (marca == null) {
             return null;
         }
