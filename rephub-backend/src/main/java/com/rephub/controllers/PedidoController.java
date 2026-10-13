@@ -1,6 +1,7 @@
 package com.rephub.controllers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -68,7 +69,11 @@ public class PedidoController {
     }
 
     @PostMapping
-    public ResponseEntity<Pedido> createPedido(Authentication authentication, @Valid @RequestBody PedidoRequest request) {
+    public ResponseEntity<?> createPedido(Authentication authentication, @Valid @RequestBody PedidoRequest request) {
+        if (request.getCidade() == null || request.getCidade().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("cidade", "A cidade é obrigatória"));
+        }
+
         Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
 
         Pedido pedido = montarPedido(request);
@@ -115,6 +120,16 @@ public class PedidoController {
         pedido.setComissaoPercentual(request.getComissaoPercentual());
         pedido.setValorComissao(request.getValorComissao());
         pedido.setCondicaoPagamento(request.getCondicaoPagamento());
+
+        if (request.getCidade() != null && !request.getCidade().isBlank()) {
+            pedido.setCidade(request.getCidade().trim());
+        }
+
+        // Data escolhida + hora atual (mantém a ordem entre pedidos do mesmo dia).
+        // Na edição esse campo é ignorado pelo service.
+        if (request.getData() != null) {
+            pedido.setDataCadastro(request.getData().atTime(LocalTime.now()));
+        }
 
         return pedido;
     }

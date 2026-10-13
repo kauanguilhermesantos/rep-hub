@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Package, User, DollarSign, Tag, Percent } from 'lucide-react'
+import { X, Package, User, DollarSign, Tag, Percent, Calendar, MapPin } from 'lucide-react'
 import { Marca } from '@/components/MarcaCard'
 import { PedidoFormPayload } from '@/services/pedidoService'
+import { ApiError } from '@/lib/ApiError'
+import { hojeIso } from '@/lib/formatoHora'
 
 interface NovoPedidoModalProps {
   isOpen: boolean
@@ -19,7 +21,10 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
   const [valorTotal, setValorTotal] = useState('')
   const [condicaoPagamento, setCondicaoPagamento] = useState('')
   const [comissaoPercentual, setComissaoPercentual] = useState('')
+  const [cidade, setCidade] = useState('')
+  const [data, setData] = useState(hojeIso())
   const [erro, setErro] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [salvando, setSalvando] = useState(false)
 
   if (!isOpen) return null
@@ -31,7 +36,10 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
     setValorTotal('')
     setCondicaoPagamento('')
     setComissaoPercentual('')
+    setCidade('')
+    setData(hojeIso())
     setErro('')
+    setFieldErrors({})
   }
 
   function fechar() {
@@ -46,9 +54,10 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setErro('')
+    setFieldErrors({})
 
     if (!marcaId) {
-      setErro('Selecione uma marca')
+      setFieldErrors({ 'marca.id': 'Selecione uma marca' })
       return
     }
 
@@ -62,9 +71,14 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
         comissaoPercentual: comissaoNum,
         valorComissao: valorComissaoCalculado,
         condicaoPagamento,
+        cidade: cidade.trim(),
+        data,
       })
       fechar()
     } catch (err) {
+      if (err instanceof ApiError && err.fieldErrors) {
+        setFieldErrors(err.fieldErrors)
+      }
       setErro(err instanceof Error ? err.message : 'Não foi possível criar o pedido')
     } finally {
       setSalvando(false)
@@ -97,9 +111,16 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
               value={cliente}
               onChange={(e) => setCliente(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
+                fieldErrors.cliente
+                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
               placeholder="Nome do cliente"
             />
+            {fieldErrors.cliente && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.cliente}</p>
+            )}
           </div>
 
           <div>
@@ -113,13 +134,20 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
               value={marcaId}
               onChange={(e) => setMarcaId(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors bg-white ${
+                fieldErrors['marca.id']
+                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
             >
               <option value="">Selecione uma marca</option>
               {marcas.map(marca => (
                 <option key={marca.id} value={marca.id}>{marca.nome}</option>
               ))}
             </select>
+            {fieldErrors['marca.id'] && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors['marca.id']}</p>
+            )}
             {marcas.length === 0 && (
               <p className="text-xs text-amber-600 mt-1">
                 Cadastre uma marca antes de criar um pedido.
@@ -140,9 +168,16 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
               onChange={(e) => setQuantidade(e.target.value)}
               required
               min="1"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
+                fieldErrors.quantPares
+                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
               placeholder="Ex: 20"
             />
+            {fieldErrors.quantPares && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.quantPares}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -160,9 +195,16 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
                 required
                 min="0"
                 step="0.01"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
+                  fieldErrors.valorTotal
+                    ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                    : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                }`}
                 placeholder="R$ 0,00"
               />
+              {fieldErrors.valorTotal && (
+                <p className="text-xs text-red-600 mt-1">{fieldErrors.valorTotal}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -178,9 +220,16 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
                 required
                 min="0"
                 step="0.1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
+                  fieldErrors.comissaoPercentual
+                    ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                    : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                }`}
                 placeholder="Ex: 5"
               />
+              {fieldErrors.comissaoPercentual && (
+                <p className="text-xs text-red-600 mt-1">{fieldErrors.comissaoPercentual}</p>
+              )}
             </div>
           </div>
 
@@ -202,9 +251,65 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
               value={condicaoPagamento}
               onChange={(e) => setCondicaoPagamento(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
+                fieldErrors.condicaoPagamento
+                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
               placeholder="Ex: 30 dias, à vista, 30/60 dias"
             />
+            {fieldErrors.condicaoPagamento && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.condicaoPagamento}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center gap-1">
+                <MapPin size={16} />
+                <span>Cidade</span>
+              </div>
+            </label>
+            <input
+              type="text"
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+              required
+              maxLength={100}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
+                fieldErrors.cidade
+                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
+              placeholder="Ex: Fortaleza"
+            />
+            {fieldErrors.cidade && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.cidade}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center gap-1">
+                <Calendar size={16} />
+                <span>Data do Pedido</span>
+              </div>
+            </label>
+            <input
+              type="date"
+              value={data}
+              onChange={(e) => setData(e.target.value)}
+              required
+              max={hojeIso()}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
+                fieldErrors.data
+                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
+            />
+            {fieldErrors.data && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.data}</p>
+            )}
           </div>
 
           {erro && <p className="text-sm text-red-600">{erro}</p>}

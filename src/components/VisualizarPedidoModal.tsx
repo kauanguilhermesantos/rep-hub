@@ -139,6 +139,10 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
                   <p className="text-xs text-gray-500">Condição de Pagamento</p>
                   <p className="font-medium text-gray-800">{pedido.condicaoPagamento}</p>
                 </div>
+                <div className="mt-3">
+                  <p className="text-xs text-gray-500">Cidade</p>
+                  <p className="font-medium text-gray-800">{pedido.cidade || '—'}</p>
+                </div>
               </div>
             </div>
           </div>

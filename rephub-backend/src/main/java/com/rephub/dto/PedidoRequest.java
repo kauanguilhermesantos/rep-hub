@@ -6,9 +6,12 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 import lombok.Data;
 
-// Usado tanto para criar quanto para editar pedido — o corpo é o mesmo
+// Usado tanto para criar quanto para editar pedido — o corpo é o mesmo nos dois casos
 @Data
 public class PedidoRequest {
 
@@ -38,4 +41,12 @@ public class PedidoRequest {
 
     @NotBlank(message = "A condição de pagamento é obrigatória")
     private String condicaoPagamento;
+
+    // Obrigatória ao criar (checado no controller); opcional na edição
+    @Size(max = 100, message = "A cidade deve ter no máximo 100 caracteres")
+    private String cidade;
+
+    // Data do pedido (yyyy-MM-dd). Se não vier, usa a data de hoje. Só vale na criação.
+    @PastOrPresent(message = "A data do pedido não pode ser futura")
+    private LocalDate data;
 }

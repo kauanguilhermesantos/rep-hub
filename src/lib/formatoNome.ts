@@ -5,7 +5,6 @@ export function primeiroEUltimoNome(nomeCompleto?: string): string {
   return `${partes[0]} ${partes[partes.length - 1]}`
 }
  
-// "João da Silva Santos" -> "JS"
 export function iniciais(nomeCompleto?: string): string {
   if (!nomeCompleto) return ""
   const partes = nomeCompleto.trim().split(/\s+/)
