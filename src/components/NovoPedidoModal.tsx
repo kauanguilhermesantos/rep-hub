@@ -250,7 +250,6 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
               type="text"
               value={condicaoPagamento}
               onChange={(e) => setCondicaoPagamento(e.target.value)}
-              required
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
                 fieldErrors.condicaoPagamento
                   ? "border-red-400 focus:ring-red-400 focus:border-red-400"

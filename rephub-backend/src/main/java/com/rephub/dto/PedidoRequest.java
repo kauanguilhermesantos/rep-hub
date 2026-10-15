@@ -39,7 +39,6 @@ public class PedidoRequest {
     @DecimalMin(value = "0.0", message = "O valor da comissão não pode ser negativo")
     private Double valorComissao;
 
-    @NotBlank(message = "A condição de pagamento é obrigatória")
     private String condicaoPagamento;
 
     // Obrigatória ao criar (checado no controller); opcional na edição
