@@ -12,6 +12,7 @@ import {
   isPasswordValid,
 } from "@/lib/validation"
 import "@/app/globals.css"
+import SenhaInput from "@/components/SenhaInput"
 
 export default function TelaCadastro() {
   const router = useRouter()
@@ -153,15 +154,16 @@ export default function TelaCadastro() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Senha
             </label>
-            <input
-              type="password"
-              placeholder="Digite sua senha"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              onFocus={() => setMostrarRequisitosSenha(true)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            />
+            <div onFocus={() => setMostrarRequisitosSenha(true)}>
+              <SenhaInput
+                value={senha}
+                onChange={setSenha}
+                placeholder="Digite sua senha"
+                required
+                autoComplete="new-password"
+                className="px-4 py-3"
+              />
+            </div>
 
             {/* Checklist de requisitos, aparece ao focar no campo */}
             {mostrarRequisitosSenha && (
@@ -189,17 +191,13 @@ export default function TelaCadastro() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Confirmar senha
             </label>
-            <input
-              type="password"
-              placeholder="Digite sua senha novamente"
+            <SenhaInput
               value={confirmarSenha}
-              onChange={(e) => setConfirmarSenha(e.target.value)}
+              onChange={setConfirmarSenha}
+              placeholder="Digite sua senha novamente"
               required
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 outline-none transition-colors ${
-                confirmarSenha.length > 0 && !senhasCoincidem
-                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
-                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              }`}
+              autoComplete="new-password"
+              className="px-4 py-3"
             />
             {confirmarSenha.length > 0 && !senhasCoincidem && (
               <p className="text-xs text-red-600 mt-1">As senhas não coincidem</p>

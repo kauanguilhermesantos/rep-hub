@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { login } from "@/lib/Auth"
 import "@/app/globals.css"
 import Link from "next/link"
+import SenhaInput from "@/components/SenhaInput"
 
 export default function TelaLogin() {
   const router = useRouter()
@@ -13,7 +14,7 @@ export default function TelaLogin() {
   const [erro, setErro] = useState("")
   const [carregando, setCarregando] = useState(false)
 
-  async function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErro("")
     setCarregando(true)
@@ -21,7 +22,7 @@ export default function TelaLogin() {
     try {
       await login(email, senha)
       router.push("/home")
-    } catch (err) {
+    } catch {
       setErro("E-mail ou senha inválidos")
     } finally {
       setCarregando(false)
@@ -30,11 +31,13 @@ export default function TelaLogin() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-blue-300 flex items-center justify-center p-4">
-      {/* Card de Login */}
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        {/* Logo e Título */}
+        {/* Logo e título */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">RepHub</h1>
+          <h1 className="text-3xl font-bold text-gray-800">
+            RepHub
+          </h1>
+
           <p className="text-gray-600 mt-2">
             Gerenciamento de vendas para representantes comerciais
           </p>
@@ -42,41 +45,57 @@ export default function TelaLogin() {
 
         {/* Formulário */}
         <form className="space-y-6" onSubmit={handleSubmit}>
-          {/* Campo E-mail */}
+          {/* E-mail */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               E-mail
             </label>
+
             <input
+              id="email"
               type="email"
               placeholder="Digite seu e-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
             />
           </div>
 
-          {/* Campo Senha */}
+          {/* Senha com opção de mostrar/ocultar */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="senha"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Senha
             </label>
-            <input
-              type="password"
-              placeholder="Digite sua senha"
+
+            <SenhaInput
               value={senha}
-              onChange={(e) => setSenha(e.target.value)}
+              onChange={setSenha}
+              placeholder="Digite sua senha"
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+              autoComplete="current-password"
+              className="px-4 py-3 focus:border-blue-500"
             />
           </div>
 
+          {/* Mensagem de erro */}
           {erro && (
-            <p className="text-sm text-red-600 text-center">{erro}</p>
+            <p
+              role="alert"
+              className="text-sm text-red-600 text-center"
+            >
+              {erro}
+            </p>
           )}
 
-          {/* Botão Entrar */}
+          {/* Botão entrar */}
           <button
             type="submit"
             disabled={carregando}
@@ -85,11 +104,15 @@ export default function TelaLogin() {
             {carregando ? "Entrando..." : "Entrar"}
           </button>
         </form>
+
         {/* Link para cadastro */}
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
-            Não tem uma conta?{' '}
-            <Link href="/cadastro" className="font-medium text-blue-500 hover:text-blue-600">
+            Não tem uma conta?{" "}
+            <Link
+              href="/cadastro"
+              className="font-medium text-blue-500 hover:text-blue-600"
+            >
               Cadastre-se
             </Link>
           </p>
