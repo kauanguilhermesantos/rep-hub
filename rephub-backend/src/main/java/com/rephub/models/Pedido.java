@@ -20,6 +20,7 @@ public class Pedido {
     private Double comissaoPercentual; // Percentual de comissão do pedido (ex: 5.0 = 5%)
     private Double valorComissao;
     private String condicaoPagamento;
+    private String estado; // UF do cliente (ex: CE)
     private String cidade; // Cidade do cliente/pedido
     private LocalDateTime dataCadastro;
     private String anexoUrl; // URL do anexo (foto do pedido)

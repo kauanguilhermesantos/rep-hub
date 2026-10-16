@@ -1,5 +1,6 @@
 package com.rephub.controllers;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -70,8 +71,15 @@ public class PedidoController {
 
     @PostMapping
     public ResponseEntity<?> createPedido(Authentication authentication, @Valid @RequestBody PedidoRequest request) {
+        Map<String, String> erros = new LinkedHashMap<>();
+        if (request.getEstado() == null || request.getEstado().isBlank()) {
+            erros.put("estado", "O estado é obrigatório");
+        }
         if (request.getCidade() == null || request.getCidade().isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("cidade", "A cidade é obrigatória"));
+            erros.put("cidade", "A cidade é obrigatória");
+        }
+        if (!erros.isEmpty()) {
+            return ResponseEntity.badRequest().body(erros);
         }
 
         Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
@@ -120,6 +128,10 @@ public class PedidoController {
         pedido.setComissaoPercentual(request.getComissaoPercentual());
         pedido.setValorComissao(request.getValorComissao());
         pedido.setCondicaoPagamento(request.getCondicaoPagamento());
+
+        if (request.getEstado() != null && !request.getEstado().isBlank()) {
+            pedido.setEstado(request.getEstado().trim().toUpperCase());
+        }
 
         if (request.getCidade() != null && !request.getCidade().isBlank()) {
             pedido.setCidade(request.getCidade().trim());

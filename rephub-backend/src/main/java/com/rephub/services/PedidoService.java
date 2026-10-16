@@ -133,6 +133,10 @@ public class PedidoService {
             existingPedido.setCondicaoPagamento(pedido.getCondicaoPagamento());
         }
 
+        if (pedido.getEstado() != null) {
+            existingPedido.setEstado(pedido.getEstado());
+        }
+
         if (pedido.getCidade() != null) {
             existingPedido.setCidade(pedido.getCidade());
         }

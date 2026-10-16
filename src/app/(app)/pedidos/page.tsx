@@ -31,6 +31,7 @@ export interface Pedido {
   pares: number
   valorTotal: number
   condicaoPagamento: string
+  estado: string
   cidade: string
   comissaoPercentual: number
   valorComissao: number

@@ -55,7 +55,7 @@ export default function PedidoTabela({ pedidos, onView, onEdit, onDelete }: Pedi
                   {formatCurrency(pedido.valorComissao)}
                   <span className="text-xs text-gray-400 ml-1">({pedido.comissaoPercentual}%)</span>
                 </td>
-                <td className="py-3 px-4 text-gray-600">{pedido.condicaoPagamento}</td>
+                <td className="py-3 px-4 text-gray-600">{pedido.condicaoPagamento || '—'}</td>
                 <td className="py-3 px-4 text-gray-600">{pedido.dataCadastro}</td>
                 <td className="py-3 px-4">
                   <div className="flex items-center justify-center gap-1">

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Package, User, DollarSign, Tag, Percent, Calendar, MapPin } from 'lucide-react'
+import { X, Package, User, DollarSign, Tag, Percent, Calendar } from 'lucide-react'
+import SeletorEstadoCidade from '@/components/SeletorEstadoCidade'
 import { Marca } from '@/components/MarcaCard'
 import { PedidoFormPayload } from '@/services/pedidoService'
 import { ApiError } from '@/lib/ApiError'
@@ -21,6 +22,7 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
   const [valorTotal, setValorTotal] = useState('')
   const [condicaoPagamento, setCondicaoPagamento] = useState('')
   const [comissaoPercentual, setComissaoPercentual] = useState('')
+  const [estado, setEstado] = useState('')
   const [cidade, setCidade] = useState('')
   const [data, setData] = useState(hojeIso())
   const [erro, setErro] = useState('')
@@ -36,6 +38,7 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
     setValorTotal('')
     setCondicaoPagamento('')
     setComissaoPercentual('')
+    setEstado('')
     setCidade('')
     setData(hojeIso())
     setErro('')
@@ -71,7 +74,8 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
         comissaoPercentual: comissaoNum,
         valorComissao: valorComissaoCalculado,
         condicaoPagamento,
-        cidade: cidade.trim(),
+        estado,
+        cidade,
         data,
       })
       fechar()
@@ -102,8 +106,32 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <div className="flex items-center gap-1">
+                <Calendar size={16} />
+                <span>Data do Pedido <span className="text-red-500">*</span></span>
+              </div>
+            </label>
+            <input
+              type="date"
+              value={data}
+              onChange={(e) => setData(e.target.value)}
+              required
+              max={hojeIso()}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
+                fieldErrors.data
+                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
+            />
+            {fieldErrors.data && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.data}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center gap-1">
                 <User size={16} />
-                <span>Cliente</span>
+                <span>Cliente <span className="text-red-500">*</span></span>
               </div>
             </label>
             <input
@@ -123,11 +151,23 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
             )}
           </div>
 
+          <SeletorEstadoCidade
+            estado={estado}
+            cidade={cidade}
+            onChange={(uf, nome) => {
+              setEstado(uf)
+              setCidade(nome)
+            }}
+            obrigatorio
+            erroEstado={fieldErrors.estado}
+            erroCidade={fieldErrors.cidade}
+          />
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <div className="flex items-center gap-1">
                 <Tag size={16} />
-                <span>Marca</span>
+                <span>Marca <span className="text-red-500">*</span></span>
               </div>
             </label>
             <select
@@ -159,7 +199,7 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <div className="flex items-center gap-1">
                 <Package size={16} />
-                <span>Quantidade de Pares</span>
+                <span>Quantidade de Pares <span className="text-red-500">*</span></span>
               </div>
             </label>
             <input
@@ -185,7 +225,7 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <div className="flex items-center gap-1">
                   <DollarSign size={16} />
-                  <span>Valor Total</span>
+                  <span>Valor Total <span className="text-red-500">*</span></span>
                 </div>
               </label>
               <input
@@ -210,7 +250,7 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <div className="flex items-center gap-1">
                   <Percent size={16} />
-                  <span>Comissão %</span>
+                  <span>Comissão % <span className="text-red-500">*</span></span>
                 </div>
               </label>
               <input
@@ -244,7 +284,7 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Condição de Pagamento
+              Condição de Pagamento <span className="text-xs font-normal text-gray-400">(opcional)</span>
             </label>
             <input
               type="text"
@@ -262,54 +302,7 @@ export default function NovoPedidoModal({ isOpen, onClose, onSave, marcas }: Nov
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <div className="flex items-center gap-1">
-                <MapPin size={16} />
-                <span>Cidade</span>
-              </div>
-            </label>
-            <input
-              type="text"
-              value={cidade}
-              onChange={(e) => setCidade(e.target.value)}
-              required
-              maxLength={100}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
-                fieldErrors.cidade
-                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
-                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              }`}
-              placeholder="Ex: Fortaleza"
-            />
-            {fieldErrors.cidade && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.cidade}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <div className="flex items-center gap-1">
-                <Calendar size={16} />
-                <span>Data do Pedido</span>
-              </div>
-            </label>
-            <input
-              type="date"
-              value={data}
-              onChange={(e) => setData(e.target.value)}
-              required
-              max={hojeIso()}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
-                fieldErrors.data
-                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
-                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              }`}
-            />
-            {fieldErrors.data && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.data}</p>
-            )}
-          </div>
+          <p className="text-xs text-gray-500"><span className="text-red-500">*</span> Campos obrigatórios</p>
 
           {erro && <p className="text-sm text-red-600">{erro}</p>}
 

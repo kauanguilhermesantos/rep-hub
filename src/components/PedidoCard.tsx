@@ -92,7 +92,7 @@ export default function PedidoCard({ pedido, onView, onEdit, onDelete }: PedidoC
           {/* Condição de Pagamento */}
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Pagamento:</span>
-            <span className="font-medium text-gray-800">{pedido.condicaoPagamento}</span>
+            <span className="font-medium text-gray-800">{pedido.condicaoPagamento || '—'}</span>
           </div>
 
           {/* Data de Cadastro */}

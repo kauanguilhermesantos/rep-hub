@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import lombok.Data;
@@ -40,6 +41,10 @@ public class PedidoRequest {
     private Double valorComissao;
 
     private String condicaoPagamento;
+
+    // Obrigatório ao criar (checado no controller); opcional na edição
+    @Pattern(regexp = "^[A-Za-z]{2}$", message = "Estado inválido")
+    private String estado;
 
     // Obrigatória ao criar (checado no controller); opcional na edição
     @Size(max = 100, message = "A cidade deve ter no máximo 100 caracteres")

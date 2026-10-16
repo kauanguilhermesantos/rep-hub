@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Package, User, DollarSign, Tag, Percent, MapPin } from 'lucide-react'
+import { X, Package, User, DollarSign, Tag, Percent } from 'lucide-react'
+import SeletorEstadoCidade from '@/components/SeletorEstadoCidade'
 import { Marca } from '@/components/MarcaCard'
 import { Pedido } from '@/app/(app)/pedidos/page'
 import { PedidoFormPayload } from '@/services/pedidoService'
@@ -22,6 +23,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
   const [valorTotal, setValorTotal] = useState('')
   const [comissaoPercentual, setComissaoPercentual] = useState('')
   const [condicaoPagamento, setCondicaoPagamento] = useState('')
+  const [estado, setEstado] = useState('')
   const [cidade, setCidade] = useState('')
   const [erro, setErro] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -36,6 +38,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
       setValorTotal(pedido.valorTotal.toString())
       setComissaoPercentual(pedido.comissaoPercentual.toString())
       setCondicaoPagamento(pedido.condicaoPagamento)
+      setEstado(pedido.estado ?? '')
       setCidade(pedido.cidade ?? '')
       setErro('')
       setFieldErrors({})
@@ -68,7 +71,8 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
         comissaoPercentual: comissaoNum,
         valorComissao: valorComissaoCalculado,
         condicaoPagamento,
-        cidade: cidade.trim() || undefined,
+        estado: estado || undefined,
+        cidade: cidade || undefined,
       })
       onClose()
     } catch (err) {
@@ -99,7 +103,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <div className="flex items-center gap-1">
                 <User size={16} />
-                <span>Cliente</span>
+                <span>Cliente <span className="text-red-500">*</span></span>
               </div>
             </label>
             <input
@@ -122,7 +126,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <div className="flex items-center gap-1">
                 <Tag size={16} />
-                <span>Marca</span>
+                <span>Marca <span className="text-red-500">*</span></span>
               </div>
             </label>
             <select
@@ -149,7 +153,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <div className="flex items-center gap-1">
                 <Package size={16} />
-                <span>Quantidade de Pares</span>
+                <span>Quantidade de Pares <span className="text-red-500">*</span></span>
               </div>
             </label>
             <input
@@ -174,7 +178,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <div className="flex items-center gap-1">
                   <DollarSign size={16} />
-                  <span>Valor Total</span>
+                  <span>Valor Total <span className="text-red-500">*</span></span>
                 </div>
               </label>
               <input
@@ -198,7 +202,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <div className="flex items-center gap-1">
                   <Percent size={16} />
-                  <span>Comissão %</span>
+                  <span>Comissão % <span className="text-red-500">*</span></span>
                 </div>
               </label>
               <input
@@ -207,7 +211,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
                 onChange={(e) => setComissaoPercentual(e.target.value)}
                 required
                 min="0"
-                step="0.1"
+                step="0.01"
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
                   fieldErrors.comissaoPercentual
                     ? "border-red-400 focus:ring-red-400 focus:border-red-400"
@@ -231,13 +235,12 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Condição de Pagamento
+              Condição de Pagamento <span className="text-xs font-normal text-gray-400">(opcional)</span>
             </label>
             <input
               type="text"
               value={condicaoPagamento}
               onChange={(e) => setCondicaoPagamento(e.target.value)}
-              required
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
                 fieldErrors.condicaoPagamento
                   ? "border-red-400 focus:ring-red-400 focus:border-red-400"
@@ -249,35 +252,24 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <div className="flex items-center gap-1">
-                <MapPin size={16} />
-                <span>Cidade</span>
-              </div>
-            </label>
-            <input
-              type="text"
-              value={cidade}
-              onChange={(e) => setCidade(e.target.value)}
-              maxLength={100}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
-                fieldErrors.cidade
-                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
-                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              }`}
-              placeholder="Ex: Fortaleza"
-            />
-            {fieldErrors.cidade && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.cidade}</p>
-            )}
-          </div>
+          <SeletorEstadoCidade
+            estado={estado}
+            cidade={cidade}
+            onChange={(uf, nome) => {
+              setEstado(uf)
+              setCidade(nome)
+            }}
+            erroEstado={fieldErrors.estado}
+            erroCidade={fieldErrors.cidade}
+          />
 
           <div className="bg-gray-50 p-3 rounded-lg">
             <p className="text-xs text-gray-500">
               ID do Pedido: <span className="font-mono text-gray-700">{pedido.id}</span>
             </p>
           </div>
+
+          <p className="text-xs text-gray-500"><span className="text-red-500">*</span> Campos obrigatórios</p>
 
           {erro && <p className="text-sm text-red-600">{erro}</p>}
 

@@ -25,6 +25,7 @@ interface PedidoApi {
   comissaoPercentual: number
   valorComissao: number
   condicaoPagamento: string
+  estado?: string | null
   cidade?: string | null
   dataCadastro: string
   anexoUrl?: string | null
@@ -39,6 +40,7 @@ export interface PedidoFormPayload {
   comissaoPercentual: number
   valorComissao: number
   condicaoPagamento: string
+  estado?: string
   cidade?: string
   data?: string // yyyy-MM-dd, só usada ao criar
 }
@@ -52,6 +54,7 @@ function mapPedido(p: PedidoApi): Pedido {
     pares: p.quantPares ?? 0,
     valorTotal: p.valorTotal ?? 0,
     condicaoPagamento: p.condicaoPagamento ?? '',
+    estado: p.estado ?? '',
     cidade: p.cidade ?? '',
     comissaoPercentual: p.comissaoPercentual ?? 0,
     valorComissao: p.valorComissao ?? 0,
@@ -69,6 +72,7 @@ function buildBody(payload: PedidoFormPayload) {
     comissaoPercentual: payload.comissaoPercentual,
     valorComissao: payload.valorComissao,
     condicaoPagamento: payload.condicaoPagamento,
+    estado: payload.estado,
     cidade: payload.cidade,
     data: payload.data,
   }
