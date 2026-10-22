@@ -71,11 +71,11 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs text-gray-500">Marca</p>
-                    <p className="font-medium text-gray-800 break-words">{pedido.marcaNome}</p>
+                    <p className="font-medium text-gray-800 wrap-break-word">{pedido.marcaNome}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Cliente</p>
-                    <p className="font-medium text-gray-800 flex items-center gap-1 break-words">
+                    <p className="font-medium text-gray-800 flex items-center gap-1 wrap-break-words">
                       <User size={14} className="text-gray-400" />
                       {pedido.cliente}
                     </p>
@@ -91,11 +91,11 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs text-gray-500">Pares</p>
-                    <p className="font-medium text-gray-800 break-words">{pedido.pares}</p>
+                    <p className="font-medium text-gray-800 wrap-break-word">{pedido.pares}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Data de Cadastro</p>
-                    <p className="font-medium text-gray-800 flex items-center gap-1 break-words">
+                    <p className="font-medium text-gray-800 flex items-center gap-1 wrap-break-word">
                       <Calendar size={14} className="text-gray-400" />
                       {pedido.dataCadastro}
                     </p>
@@ -137,11 +137,11 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
                 </h4>
                 <div>
                   <p className="text-xs text-gray-500">Condição de Pagamento</p>
-                  <p className="font-medium text-gray-800 break-words">{pedido.condicaoPagamento || '—'}</p>
+                  <p className="font-medium text-gray-800 wrap-break-word">{pedido.condicaoPagamento || '—'}</p>
                 </div>
                 <div className="mt-3">
                   <p className="text-xs text-gray-500">Cidade</p>
-                  <p className="font-medium text-gray-800 break-words">{pedido.cidade ? (pedido.estado ? `${pedido.cidade} - ${pedido.estado}` : pedido.cidade) : '—'}</p>
+                  <p className="font-medium text-gray-800 wrap-break-word">{pedido.cidade ? (pedido.estado ? `${pedido.cidade} - ${pedido.estado}` : pedido.cidade) : '—'}</p>
                 </div>
               </div>
             </div>

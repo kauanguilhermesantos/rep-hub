@@ -51,7 +51,7 @@ const SummaryCard = ({ title, value, icon: Icon, color }: any) => (
       </div>
     </div>
     <p className="text-sm text-gray-500 mb-1">{title}</p>
-    <p className="text-xl sm:text-2xl font-bold text-gray-800 break-words">{value}</p>
+    <p className="text-xl sm:text-2xl font-bold text-gray-800 wrap-break-word">{value}</p>
   </div>
 )
 

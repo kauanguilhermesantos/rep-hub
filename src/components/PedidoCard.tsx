@@ -70,13 +70,13 @@ export default function PedidoCard({ pedido, onView, onEdit, onDelete }: PedidoC
           {/* Pares */}
           <div className="flex justify-between gap-3 text-sm">
             <span className="text-gray-500 shrink-0">Pares:</span>
-            <span className="font-medium text-gray-800 text-right break-words min-w-0">{pedido.pares}</span>
+            <span className="font-medium text-gray-800 text-right wrap-break-word min-w-0">{pedido.pares}</span>
           </div>
 
           {/* Valor Total */}
           <div className="flex justify-between gap-3 text-sm">
             <span className="text-gray-500 shrink-0">Valor Total:</span>
-            <span className="font-medium text-gray-800 text-right break-words min-w-0">
+            <span className="font-medium text-gray-800 text-right wrap-break-word min-w-0">
               {formatCurrency(pedido.valorTotal)}
             </span>
           </div>
@@ -84,7 +84,7 @@ export default function PedidoCard({ pedido, onView, onEdit, onDelete }: PedidoC
           {/* Comissão */}
           <div className="flex justify-between gap-3 text-sm">
             <span className="text-gray-500 shrink-0">Comissão ({pedido.comissaoPercentual}%):</span>
-            <span className="font-medium text-green-600 text-right break-words min-w-0">
+            <span className="font-medium text-green-600 text-right wrap-break-word min-w-0">
               {formatCurrency(pedido.valorComissao)}
             </span>
           </div>
@@ -92,13 +92,13 @@ export default function PedidoCard({ pedido, onView, onEdit, onDelete }: PedidoC
           {/* Condição de Pagamento */}
           <div className="flex justify-between gap-3 text-sm">
             <span className="text-gray-500 shrink-0">Pagamento:</span>
-            <span className="font-medium text-gray-800 text-right break-words min-w-0">{pedido.condicaoPagamento || '—'}</span>
+            <span className="font-medium text-gray-800 text-right wrap-break-word min-w-0">{pedido.condicaoPagamento || '—'}</span>
           </div>
 
           {/* Data de Cadastro */}
           <div className="flex justify-between gap-3 text-sm">
             <span className="text-gray-500 shrink-0">Data:</span>
-            <span className="font-medium text-gray-800 text-right break-words min-w-0">{pedido.dataCadastro}</span>
+            <span className="font-medium text-gray-800 text-right wrap-break-word min-w-0">{pedido.dataCadastro}</span>
           </div>
         </div>
 
@@ -114,7 +114,7 @@ export default function PedidoCard({ pedido, onView, onEdit, onDelete }: PedidoC
                 className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 transition-colors bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg"
               >
                 <Paperclip size={14} />
-                <span className="truncate max-w-[8rem]">{pedido.anexo.nome}</span>
+                <span className="truncate max-w-32">{pedido.anexo.nome}</span>
               </a>
             ) : (
               <span className="text-xs text-gray-400 flex items-center gap-1">

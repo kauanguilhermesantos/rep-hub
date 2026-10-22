@@ -98,7 +98,7 @@ export default function TabelaRelatorioMarcas({
 
       {/* Tabela */}
       <div className="overflow-x-auto overscroll-x-contain">
-        <table className="w-full min-w-[40rem]">
+        <table className="w-full min-w-160">
           <thead>
             <tr className="border-b border-gray-200">
               <th 

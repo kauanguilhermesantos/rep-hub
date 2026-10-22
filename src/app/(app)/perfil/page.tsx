@@ -167,7 +167,7 @@ export default function PerfilPage() {
             <div className="flex justify-center mb-4">
               <AvatarUsuario nome={usuario.nomeCompleto} tamanho="xl" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800 break-words">{usuario.nomeCompleto}</h2>
+            <h2 className="text-xl font-bold text-gray-800 wrap-break-word">{usuario.nomeCompleto}</h2>
             <p className="text-blue-600 font-medium mt-1">{usuario.cargo || 'Cargo não definido'}</p>
 
             <div className="mt-4 pt-4 border-t border-gray-100">
@@ -296,7 +296,7 @@ export default function PerfilPage() {
                     )}
                   </>
                 ) : (
-                  <p className="text-gray-800 py-2 break-words">{usuario.nomeCompleto}</p>
+                  <p className="text-gray-800 py-2 wrap-break-word">{usuario.nomeCompleto}</p>
                 )}
               </div>
 

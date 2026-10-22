@@ -136,7 +136,7 @@ export const DeleteModal = ({
                     </button>
                 </div>
                 <div className="p-4 sm:p-6">
-                    <p className="text-gray-700 mb-6 break-words">Tem certeza que deseja excluir a marca <span className="font-semibold">{marca.nome}</span>? Esta ação não pode ser desfeita.</p>
+                    <p className="text-gray-700 mb-6 wrap-break-word">Tem certeza que deseja excluir a marca <span className="font-semibold">{marca.nome}</span>? Esta ação não pode ser desfeita.</p>
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}

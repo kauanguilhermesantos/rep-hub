@@ -17,7 +17,7 @@ export default function PedidoTabela({ pedidos, onView, onEdit, onDelete }: Pedi
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="overflow-x-auto overscroll-x-contain">
-        <table className="w-full min-w-[56rem]">
+        <table className="w-full min-w-4xl">
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
               <th className="text-left py-3 px-3 sm:px-4 text-sm font-medium whitespace-nowrap text-gray-500">Marca</th>
