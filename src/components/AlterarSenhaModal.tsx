@@ -72,12 +72,11 @@ export default function AlterarSenhaModal({
   }
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={fecharEResetar}
-      title="Alterar senha"
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <Modal>
+      {isOpen && (
+        <div>
+          <div className="text-lg font-semibold mb-4">Alterar senha</div>
+          <form onSubmit={handleSubmit} className="space-y-4">
         {/* Senha atual */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -184,7 +183,9 @@ export default function AlterarSenhaModal({
             {salvando ? "Salvando..." : "Salvar"}
           </button>
         </div>
-      </form>
+          </form>
+        </div>
+      )}
     </Modal>
   )
 }
