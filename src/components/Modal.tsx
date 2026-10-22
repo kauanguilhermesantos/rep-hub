@@ -1,37 +1,206 @@
-"use client"
+'use client'
 
-import { X } from "lucide-react"
-import { ReactNode } from "react"
+import { useState, useEffect } from 'react'
+import { Inter } from 'next/font/google'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { 
+  Menu, 
+  X, 
+  Home, 
+  ShoppingBag, 
+  Tag, 
+  BarChart3, 
+  LogOut,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react'
+import { logout } from '@/lib/Auth'
+import { getMe } from '@/services/usuarioService'
+import { primeiroEUltimoNome, iniciais } from '@/lib/formatoNome'
+import { Usuario } from '@/types/usuario'
+import '@/app/globals.css'
 
-interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title: string
-  children: ReactNode
-}
+const inter = Inter({ subsets: ['latin'] })
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
-  if (!isOpen) return null
+export default function UsuarioLayout({ children }: { children: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [usuario, setUsuario] = useState<Usuario | null>(null)
+  const pathname = usePathname()
+
+  // Fecha o menu do celular ao navegar para outra página
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
+
+  // Busca os dados reais do usuário logado (usado no cabeçalho)
+  useEffect(() => {
+    getMe()
+      .then(setUsuario)
+      .catch(() => {
+        // Falha silenciosa aqui: se o token tiver expirado, o middleware
+        // já vai redirecionar pro /login na próxima navegação
+      })
+  }, [])
+
+  const navigation = [
+    { name: 'Início', href: '/home', icon: Home },
+    { name: 'Pedidos', href: '/pedidos', icon: ShoppingBag },
+    { name: 'Marcas', href: '/marcas', icon: Tag },
+    { name: 'Relatórios', href: '/relatorios', icon: BarChart3 },
+  ]
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen)
+  }
+
+  // Função de logout
+  const handleLogout = () => {
+    logout();
+    // Redireciona para a página de login após o logout
+    window.location.href = '/login';
+  }
 
   return (
-    <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X size={20} />
-          </button>
+    <div className={inter.className}>
+      <div className="min-h-screen bg-gray-50">
+        {/* Overlay para mobile quando sidebar está aberta */}
+        {mobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
+        <aside
+          className={`
+            fixed top-0 left-0 z-30 h-full bg-white border-r border-gray-200 
+            transition-all duration-300 ease-in-out
+            w-64 max-w-[85vw] ${sidebarOpen ? 'lg:w-64' : 'lg:w-20'}
+            ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          `}
+        >
+          {/* Logo e Toggle */}
+          <div className={`
+            flex items-center h-16 border-b border-gray-200 px-4
+            justify-between ${sidebarOpen ? '' : 'lg:justify-center'}
+          `}>
+            <h1 className={`text-xl font-bold text-gray-800 ${sidebarOpen ? '' : 'lg:hidden'}`}>RepHub</h1>
+            {/* Celular: botão fechar. Desktop: recolher/expandir */}
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
+              aria-label="Fechar menu"
+            >
+              <X size={20} className="text-gray-600" />
+            </button>
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors hidden lg:block"
+              aria-label={sidebarOpen ? 'Recolher menu' : 'Expandir menu'}
+            >
+              {sidebarOpen ? (
+                <ChevronLeft size={20} className="text-gray-600" />
+              ) : (
+                <ChevronRight size={20} className="text-gray-600" />
+              )}
+            </button>
+          </div>
+
+          {/* Navegação */}
+          <nav className="flex-1 py-6">
+            <ul className="space-y-2 px-3">
+              {navigation.map((item) => {
+                const isActive = pathname === item.href
+                const Icon = item.icon
+                
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`
+                        flex items-center gap-3 px-3 py-3 rounded-lg transition-colors
+                        ${sidebarOpen ? '' : 'lg:justify-center lg:gap-0'}
+                        ${isActive 
+                          ? 'bg-blue-50 text-blue-600' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                        }
+                      `}
+                    >
+                      <Icon size={20} />
+                      <span className={sidebarOpen ? '' : 'lg:hidden'}>{item.name}</span>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
+
+          {/* Botão Sair */}
+          <div className="border-t border-gray-200 p-4">
+            <button
+              className={`
+                flex items-center gap-3 w-full px-3 py-3 rounded-lg text-red-600 
+                hover:bg-red-50 transition-colors
+                ${sidebarOpen ? '' : 'lg:justify-center lg:gap-0'}
+              `}
+              onClick={handleLogout}
+            >
+              <LogOut size={20} />
+              <span className={sidebarOpen ? '' : 'lg:hidden'}>Sair</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <div className={`
+          min-w-0 overflow-x-clip transition-all duration-300 ease-in-out
+          ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}
+        `}>
+          {/* Header */}
+          <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+            <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+              {/* Botão Menu Hamburguer (mobile) e Toggle (desktop) */}
+              <div className="flex items-center">
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
+                  aria-label="Abrir menu"
+                >
+                  <Menu size={24} className="text-gray-600" />
+                </button>
+                
+                {/* Título no header (mobile) */}
+                <h1 className="text-xl font-bold text-gray-800 ml-2 lg:hidden">
+                  RepHub
+                </h1>
+              </div>
+
+              {/* Avatar do Usuário */}
+              <Link href="/perfil">
+                <div className="flex items-center gap-3">
+                  <div className="text-right hidden sm:block max-w-[40vw] truncate">
+                    {/* Primeiro e último nome do usuário logado */}
+                    <p className="text-sm font-medium text-gray-700">
+                      {usuario ? primeiroEUltimoNome(usuario.nomeCompleto) : ''}
+                    </p>
+                  </div>
+                  {/* Avatar do Usuário (iniciais do nome) */}
+                  <div className="w-10 h-10 shrink-0 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                    {usuario ? iniciais(usuario.nomeCompleto) : ''}
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <main className="p-4 sm:p-6 lg:p-8 min-w-0">
+            {children}
+          </main>
         </div>
-        {children}
       </div>
     </div>
   )

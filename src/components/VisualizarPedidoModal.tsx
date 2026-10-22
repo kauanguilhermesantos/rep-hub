@@ -38,19 +38,19 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
       <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-up">
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg bg-linear-to-br ${getAvatarColor(pedido.marcaNome)} flex items-center justify-center text-white font-bold`}>
+        <div className="flex items-center justify-between gap-2 p-4 sm:p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={`w-10 h-10 shrink-0 rounded-lg bg-linear-to-br ${getAvatarColor(pedido.marcaNome)} flex items-center justify-center text-white font-bold`}>
               {pedido.marcaNome.charAt(0).toUpperCase()}
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="text-lg font-semibold text-gray-800">Detalhes do Pedido</h3>
-              <p className="text-sm text-gray-500">ID: {pedido.id}</p>
+              <p className="text-sm text-gray-500 truncate">ID: {pedido.id}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 shrink-0 hover:bg-gray-100 rounded-lg transition-colors"
             title="Fechar"
           >
             <X size={20} className="text-gray-500" />
@@ -58,7 +58,7 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
         </div>
         
         {/* Conteúdo */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Informações principais em grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Coluna 1 */}
@@ -71,11 +71,11 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs text-gray-500">Marca</p>
-                    <p className="font-medium text-gray-800">{pedido.marcaNome}</p>
+                    <p className="font-medium text-gray-800 break-words">{pedido.marcaNome}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Cliente</p>
-                    <p className="font-medium text-gray-800 flex items-center gap-1">
+                    <p className="font-medium text-gray-800 flex items-center gap-1 break-words">
                       <User size={14} className="text-gray-400" />
                       {pedido.cliente}
                     </p>
@@ -91,11 +91,11 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs text-gray-500">Pares</p>
-                    <p className="font-medium text-gray-800">{pedido.pares}</p>
+                    <p className="font-medium text-gray-800 break-words">{pedido.pares}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Data de Cadastro</p>
-                    <p className="font-medium text-gray-800 flex items-center gap-1">
+                    <p className="font-medium text-gray-800 flex items-center gap-1 break-words">
                       <Calendar size={14} className="text-gray-400" />
                       {pedido.dataCadastro}
                     </p>
@@ -137,11 +137,11 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
                 </h4>
                 <div>
                   <p className="text-xs text-gray-500">Condição de Pagamento</p>
-                  <p className="font-medium text-gray-800">{pedido.condicaoPagamento || '—'}</p>
+                  <p className="font-medium text-gray-800 break-words">{pedido.condicaoPagamento || '—'}</p>
                 </div>
                 <div className="mt-3">
                   <p className="text-xs text-gray-500">Cidade</p>
-                  <p className="font-medium text-gray-800">{pedido.cidade ? (pedido.estado ? `${pedido.cidade} - ${pedido.estado}` : pedido.cidade) : '—'}</p>
+                  <p className="font-medium text-gray-800 break-words">{pedido.cidade ? (pedido.estado ? `${pedido.cidade} - ${pedido.estado}` : pedido.cidade) : '—'}</p>
                 </div>
               </div>
             </div>
@@ -163,8 +163,8 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
                 <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
                   <FileText size={24} className="text-blue-600" />
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium text-gray-800">{pedido.anexo.nome}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-800 truncate">{pedido.anexo.nome}</p>
                   <p className="text-xs text-gray-500">Clique para baixar</p>
                 </div>
                 <Download size={20} className="text-gray-400 group-hover:text-blue-600 transition-colors" />
@@ -174,17 +174,17 @@ export default function VisualizarPedidoModal({ isOpen, onClose, pedido }: Visua
 
           {/* Informações adicionais */}
           <div className="border-t border-gray-100 pt-4">
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-xs text-gray-400 text-center break-all">
               Pedido criado em {pedido.dataCadastro} • ID: {pedido.id}
             </p>
           </div>
         </div>
 
         {/* Rodapé */}
-        <div className="flex justify-end p-6 border-t border-gray-100 bg-gray-50">
+        <div className="flex justify-end p-4 sm:p-6 border-t border-gray-100 bg-gray-50">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="w-full sm:w-auto px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Fechar
           </button>

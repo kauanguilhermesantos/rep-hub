@@ -16,7 +16,7 @@ import { buscarRelatorio } from '@/services/relatorioService'
 
 // Componente de Card de Resumo
 const SummaryCard = ({ title, value, icon: Icon, color, trend }: any) => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all">
+  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-md transition-all min-w-0">
     <div className="flex items-center justify-between mb-3">
       <div className={`p-3 rounded-lg bg-${color}-50`}>
         <Icon className={`text-${color}-600`} size={24} />
@@ -28,7 +28,7 @@ const SummaryCard = ({ title, value, icon: Icon, color, trend }: any) => (
       )}
     </div>
     <p className="text-sm text-gray-500 mb-1">{title}</p>
-    <p className="text-2xl font-bold text-gray-800">{value}</p>
+    <p className="text-xl sm:text-2xl font-bold text-gray-800 break-words">{value}</p>
   </div>
 )
 
@@ -119,7 +119,7 @@ export default function RelatoriosPage() {
       ) : dados && (
         <>
           {/* Cards de Resumo */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <SummaryCard 
               title="Total de Pedidos" 
               value={formatNumber(dados.totalPedidos)} 
@@ -147,7 +147,7 @@ export default function RelatoriosPage() {
           </div>
 
           {/* Gráficos */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             <GraficoPizza 
               dados={dadosGraficoPares} 
               titulo="Pares por Marca" 

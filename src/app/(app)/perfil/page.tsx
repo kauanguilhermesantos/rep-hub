@@ -24,6 +24,7 @@ import AvatarUsuario from '@/components/AvatarUsuario'
 import AlterarSenhaModal from '@/components/AlterarSenhaModal'
 import ExcluirContaModal from '@/components/ExcluirContaModal'
 import { getMe, updateMe } from '@/services/usuarioService'
+import { ApiError } from '@/lib/ApiError'
 import { formatarData, formatarDataHora } from '@/lib/formatoHora'
 
 export default function PerfilPage() {
@@ -36,6 +37,7 @@ export default function PerfilPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [mensagem, setMensagem] = useState<{ tipo: 'success' | 'error'; texto: string } | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const [mostrarModalSenha, setMostrarModalSenha] = useState(false)
   const [mostrarModalExcluir, setMostrarModalExcluir] = useState(false)
@@ -80,6 +82,7 @@ export default function PerfilPage() {
 
     setIsSaving(true)
     setMensagem(null)
+    setFieldErrors({})
 
     try {
       const usuarioAtualizado = await updateMe({
@@ -96,6 +99,9 @@ export default function PerfilPage() {
       setIsEditing(false)
       setMensagem({ tipo: 'success', texto: 'Perfil atualizado com sucesso!' })
     } catch (err) {
+      if (err instanceof ApiError && err.fieldErrors) {
+        setFieldErrors(err.fieldErrors)
+      }
       setMensagem({
         tipo: 'error',
         texto: err instanceof Error ? err.message : 'Não foi possível salvar as alterações',
@@ -153,23 +159,23 @@ export default function PerfilPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         {/* Coluna da Esquerda - Avatar e Informações Rápidas */}
         <div className="lg:col-span-1 space-y-6">
           {/* Card do Avatar */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 text-center">
             <div className="flex justify-center mb-4">
               <AvatarUsuario nome={usuario.nomeCompleto} tamanho="xl" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800">{usuario.nomeCompleto}</h2>
+            <h2 className="text-xl font-bold text-gray-800 break-words">{usuario.nomeCompleto}</h2>
             <p className="text-blue-600 font-medium mt-1">{usuario.cargo || 'Cargo não definido'}</p>
 
             <div className="mt-4 pt-4 border-t border-gray-100">
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+              <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-gray-500">
                 <Calendar size={16} />
                 <span>Membro desde {formatarData(usuario.dataCadastro)}</span>
               </div>
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-gray-500 mt-2">
                 <Clock size={16} />
                 <span>Último acesso: {formatarDataHora(usuario.ultimoAcesso)}</span>
               </div>
@@ -177,7 +183,7 @@ export default function PerfilPage() {
           </div>
 
           {/* Card de Segurança */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-4">
               <Shield className="text-blue-600" size={20} />
               <h3 className="font-semibold text-gray-800">Segurança</h3>
@@ -223,8 +229,8 @@ export default function PerfilPage() {
           )}
 
           {/* Formulário de Informações Pessoais */}
-          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-6">
+          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <h3 className="text-lg font-semibold text-gray-800">Informações Pessoais</h3>
               {!isEditing ? (
                 <button
@@ -276,16 +282,21 @@ export default function PerfilPage() {
                   </div>
                 </label>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    name="nomeCompleto"
-                    value={formData.nomeCompleto}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    required
-                  />
+                  <>
+                    <input
+                      type="text"
+                      name="nomeCompleto"
+                      value={formData.nomeCompleto}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      required
+                    />
+                    {fieldErrors.nomeCompleto && (
+                      <p className="text-xs text-red-600 mt-1">{fieldErrors.nomeCompleto}</p>
+                    )}
+                  </>
                 ) : (
-                  <p className="text-gray-800 py-2">{usuario.nomeCompleto}</p>
+                  <p className="text-gray-800 py-2 break-words">{usuario.nomeCompleto}</p>
                 )}
               </div>
 
@@ -298,14 +309,19 @@ export default function PerfilPage() {
                   </div>
                 </label>
                 {isEditing ? (
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    required
-                  />
+                  <>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      required
+                    />
+                    {fieldErrors.email && (
+                      <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>
+                    )}
+                  </>
                 ) : (
                   <p className="text-gray-800 py-2">{usuario.email}</p>
                 )}
@@ -320,15 +336,20 @@ export default function PerfilPage() {
                   </div>
                 </label>
                 {isEditing ? (
-                  <input
-                    type="tel"
-                    name="telefone"
-                    value={formData.telefone}
-                    onChange={handlePhoneChange}
-                    placeholder="(11) 99999-9999"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    required
-                  />
+                  <>
+                    <input
+                      type="tel"
+                      name="telefone"
+                      value={formData.telefone}
+                      onChange={handlePhoneChange}
+                      placeholder="(11) 99999-9999"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      required
+                    />
+                    {fieldErrors.telefone && (
+                      <p className="text-xs text-red-600 mt-1">{fieldErrors.telefone}</p>
+                    )}
+                  </>
                 ) : (
                   <p className="text-gray-800 py-2">{usuario.telefone}</p>
                 )}
@@ -350,13 +371,13 @@ export default function PerfilPage() {
           </form>
 
           {/* Preferências (ainda não persiste no backend) */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Preferências</h3>
 
             <div className="space-y-4">
               {/* Notificações */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3 min-w-0">
                   <Bell size={20} className="text-gray-500" />
                   <div>
                     <p className="font-medium text-gray-800">Notificações</p>
@@ -376,7 +397,7 @@ export default function PerfilPage() {
               </div>
 
               {/* Idioma */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Globe size={20} className="text-gray-500" />
                   <div>
@@ -396,7 +417,7 @@ export default function PerfilPage() {
               </div>
 
               {/* Tema */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="flex gap-1">
                     <Sun size={20} className="text-gray-500" />

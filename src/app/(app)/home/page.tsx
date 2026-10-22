@@ -142,18 +142,18 @@ export default function Home() {
       </div>
 
       {/* Cards de Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {summaryData.map((item, index) => (
           <ResumoCard key={index} {...item} />
         ))}
       </div>
 
       {/* Grid principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Vendas por Marca */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
+        <div className="lg:col-span-2 min-w-0 bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-2 mb-6">
+            <div className="min-w-0">
               <h2 className="text-lg font-semibold text-gray-800">Vendas por Marca</h2>
               <p className="text-sm text-gray-500">Distribuição de vendas nos últimos 30 dias</p>
             </div>
@@ -176,12 +176,12 @@ export default function Home() {
               <div className="mb-6">
                 <div className="flex items-end h-32 gap-2">
                   {brandsData.map((brand, index) => (
-                    <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                    <div key={index} className="flex-1 min-w-0 flex flex-col items-center gap-2">
                       <div 
                         className={`w-full bg-${brand.color}-500 rounded-t-lg`}
                         style={{ height: `${Math.max(brand.percentage, 4) * 1.5}px` }}
                       />
-                      <span className="text-xs font-medium text-gray-600">{brand.name}</span>
+                      <span className="text-xs font-medium text-gray-600 max-w-full truncate" title={brand.name}>{brand.name}</span>
                     </div>
                   ))}
                 </div>
@@ -198,10 +198,10 @@ export default function Home() {
         </div>
 
         {/* Sidebar direita - Informações rápidas */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6 min-w-0">
           {/* Pedidos Recentes */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
                 <Clock className="text-gray-400" size={20} />
                 <h2 className="text-lg font-semibold text-gray-800">Pedidos Recentes</h2>
@@ -228,7 +228,7 @@ export default function Home() {
           </div>
 
           {/* Top Marcas */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-4">
               <Star className="text-yellow-400" size={20} />
               <h2 className="text-lg font-semibold text-gray-800">Ranking Marcas</h2>
@@ -242,13 +242,13 @@ export default function Home() {
               <div className="space-y-4">
                 {brandsData.slice(0, 3).map((brand, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg bg-${brand.color}-100 flex items-center justify-center text-${brand.color}-600 font-bold`}>
+                    <div className={`w-10 h-10 shrink-0 rounded-lg bg-${brand.color}-100 flex items-center justify-center text-${brand.color}-600 font-bold`}>
                       {brand.logo}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <span className="font-medium text-gray-800">{brand.name}</span>
-                        <span className="text-sm text-gray-600">{brand.percentage}%</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between gap-2 mb-1">
+                        <span className="font-medium text-gray-800 truncate">{brand.name}</span>
+                        <span className="text-sm text-gray-600 shrink-0">{brand.percentage}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 

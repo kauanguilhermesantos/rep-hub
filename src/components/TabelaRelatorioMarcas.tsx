@@ -1,4 +1,3 @@
-// components/TabelaRelatorioMarcas.tsx
 'use client'
 
 import { useState } from 'react'
@@ -80,7 +79,7 @@ export default function TabelaRelatorioMarcas({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 min-w-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h3 className="text-lg font-semibold text-gray-800">Detalhamento por Marca</h3>
         
@@ -88,7 +87,7 @@ export default function TabelaRelatorioMarcas({
         <select
           value={marcaSelecionada}
           onChange={(e) => onMarcaChange(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+          className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
         >
           <option value="todas">Todas as marcas</option>
           {marcas.map(marca => (
@@ -98,36 +97,36 @@ export default function TabelaRelatorioMarcas({
       </div>
 
       {/* Tabela */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto overscroll-x-contain">
+        <table className="w-full min-w-[40rem]">
           <thead>
             <tr className="border-b border-gray-200">
               <th 
-                className="text-left py-3 px-4 text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
+                className="text-left py-3 px-3 sm:px-4 whitespace-nowrap text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
                 onClick={() => handleOrdenar('nome')}
               >
                 Marca {renderSetaOrdenacao('nome')}
               </th>
               <th 
-                className="text-right py-3 px-4 text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
+                className="text-right py-3 px-3 sm:px-4 whitespace-nowrap text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
                 onClick={() => handleOrdenar('totalPedidos')}
               >
                 Pedidos {renderSetaOrdenacao('totalPedidos')}
               </th>
               <th 
-                className="text-right py-3 px-4 text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
+                className="text-right py-3 px-3 sm:px-4 whitespace-nowrap text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
                 onClick={() => handleOrdenar('totalPares')}
               >
                 Pares {renderSetaOrdenacao('totalPares')}
               </th>
               <th 
-                className="text-right py-3 px-4 text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
+                className="text-right py-3 px-3 sm:px-4 whitespace-nowrap text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
                 onClick={() => handleOrdenar('valorTotalVendas')}
               >
                 Valor Vendas {renderSetaOrdenacao('valorTotalVendas')}
               </th>
               <th 
-                className="text-right py-3 px-4 text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
+                className="text-right py-3 px-3 sm:px-4 whitespace-nowrap text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
                 onClick={() => handleOrdenar('valorTotalComissao')}
               >
                 Comissão {renderSetaOrdenacao('valorTotalComissao')}
@@ -142,11 +141,11 @@ export default function TabelaRelatorioMarcas({
                   index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                 }`}
               >
-                <td className="py-3 px-4 font-medium text-gray-800">{marca.nome}</td>
-                <td className="py-3 px-4 text-right text-gray-600">{marca.totalPedidos}</td>
-                <td className="py-3 px-4 text-right text-gray-600">{marca.totalPares}</td>
-                <td className="py-3 px-4 text-right text-gray-600">{formatCurrency(marca.valorTotalVendas)}</td>
-                <td className="py-3 px-4 text-right text-green-600 font-medium">{formatCurrency(marca.valorTotalComissao)}</td>
+                <td className="py-3 px-3 sm:px-4 whitespace-nowrap font-medium text-gray-800">{marca.nome}</td>
+                <td className="py-3 px-3 sm:px-4 whitespace-nowrap text-right text-gray-600">{marca.totalPedidos}</td>
+                <td className="py-3 px-3 sm:px-4 whitespace-nowrap text-right text-gray-600">{marca.totalPares}</td>
+                <td className="py-3 px-3 sm:px-4 whitespace-nowrap text-right text-gray-600">{formatCurrency(marca.valorTotalVendas)}</td>
+                <td className="py-3 px-3 sm:px-4 whitespace-nowrap text-right text-green-600 font-medium">{formatCurrency(marca.valorTotalComissao)}</td>
               </tr>
             ))}
           </tbody>
@@ -154,11 +153,11 @@ export default function TabelaRelatorioMarcas({
           {/* Linha de totais */}
           <tfoot>
             <tr className="bg-gray-100 font-semibold">
-              <td className="py-4 px-4 text-gray-800">Total</td>
-              <td className="py-4 px-4 text-right text-gray-800">{totais.totalPedidos}</td>
-              <td className="py-4 px-4 text-right text-gray-800">{totais.totalPares}</td>
-              <td className="py-4 px-4 text-right text-gray-800">{formatCurrency(totais.valorTotalVendas)}</td>
-              <td className="py-4 px-4 text-right text-green-700">{formatCurrency(totais.valorTotalComissao)}</td>
+              <td className="py-4 px-3 sm:px-4 whitespace-nowrap text-gray-800">Total</td>
+              <td className="py-4 px-3 sm:px-4 whitespace-nowrap text-right text-gray-800">{totais.totalPedidos}</td>
+              <td className="py-4 px-3 sm:px-4 whitespace-nowrap text-right text-gray-800">{totais.totalPares}</td>
+              <td className="py-4 px-3 sm:px-4 whitespace-nowrap text-right text-gray-800">{formatCurrency(totais.valorTotalVendas)}</td>
+              <td className="py-4 px-3 sm:px-4 whitespace-nowrap text-right text-green-700">{formatCurrency(totais.valorTotalComissao)}</td>
             </tr>
           </tfoot>
         </table>

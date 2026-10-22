@@ -88,7 +88,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-md w-full animate-fade-in max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <Package className="text-blue-600" size={24} />
             <h3 className="text-lg font-semibold text-gray-800">Editar Pedido</h3>
@@ -98,7 +98,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <div className="flex items-center gap-1">
@@ -173,7 +173,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <div className="flex items-center gap-1">
@@ -211,7 +211,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
                 onChange={(e) => setComissaoPercentual(e.target.value)}
                 required
                 min="0"
-                step="0.01"
+                step="0.1"
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
                   fieldErrors.comissaoPercentual
                     ? "border-red-400 focus:ring-red-400 focus:border-red-400"

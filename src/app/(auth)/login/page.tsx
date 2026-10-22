@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { login } from "@/lib/Auth"
+import { ApiError } from "@/lib/ApiError"
 import "@/app/globals.css"
 import Link from "next/link"
 import SenhaInput from "@/components/SenhaInput"
@@ -12,18 +13,23 @@ export default function TelaLogin() {
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
   const [erro, setErro] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [carregando, setCarregando] = useState(false)
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setErro("")
+    setFieldErrors({})
     setCarregando(true)
 
     try {
       await login(email, senha)
       router.push("/home")
-    } catch {
-      setErro("E-mail ou senha inválidos")
+    } catch (err) {
+      if (err instanceof ApiError && err.fieldErrors) {
+        setFieldErrors(err.fieldErrors)
+      }
+      setErro(err instanceof Error ? err.message : "E-mail ou senha inválidos")
     } finally {
       setCarregando(false)
     }
@@ -31,13 +37,11 @@ export default function TelaLogin() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-blue-300 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        {/* Logo e título */}
+      {/* Card de Login */}
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-5 sm:p-8">
+        {/* Logo e Título */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">
-            RepHub
-          </h1>
-
+          <h1 className="text-3xl font-bold text-gray-800">RepHub</h1>
           <p className="text-gray-600 mt-2">
             Gerenciamento de vendas para representantes comerciais
           </p>
@@ -45,57 +49,56 @@ export default function TelaLogin() {
 
         {/* Formulário */}
         <form className="space-y-6" onSubmit={handleSubmit}>
-          {/* E-mail */}
+          {/* Campo E-mail */}
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               E-mail
             </label>
-
             <input
-              id="email"
               type="email"
               placeholder="Digite seu e-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 outline-none transition-colors ${
+                fieldErrors.email
+                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
             />
+            {fieldErrors.email && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>
+            )}
           </div>
 
-          {/* Senha com opção de mostrar/ocultar */}
+          {/* Campo Senha */}
           <div>
-            <label
-              htmlFor="senha"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Senha
-            </label>
-
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Senha
+              </label>
+              <Link href="/esqueci-senha" className="text-xs text-blue-500 hover:text-blue-600 font-medium">
+                Esqueci minha senha
+              </Link>
+            </div>
             <SenhaInput
+              placeholder="Digite sua senha"
               value={senha}
               onChange={setSenha}
-              placeholder="Digite sua senha"
               required
+              temErro={!!fieldErrors.senha}
               autoComplete="current-password"
-              className="px-4 py-3 focus:border-blue-500"
             />
+            {fieldErrors.senha && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.senha}</p>
+            )}
           </div>
 
-          {/* Mensagem de erro */}
           {erro && (
-            <p
-              role="alert"
-              className="text-sm text-red-600 text-center"
-            >
-              {erro}
-            </p>
+            <p className="text-sm text-red-600 text-center">{erro}</p>
           )}
 
-          {/* Botão entrar */}
+          {/* Botão Entrar */}
           <button
             type="submit"
             disabled={carregando}
@@ -104,15 +107,11 @@ export default function TelaLogin() {
             {carregando ? "Entrando..." : "Entrar"}
           </button>
         </form>
-
         {/* Link para cadastro */}
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
-            Não tem uma conta?{" "}
-            <Link
-              href="/cadastro"
-              className="font-medium text-blue-500 hover:text-blue-600"
-            >
+            Não tem uma conta?{' '}
+            <Link href="/cadastro" className="font-medium text-blue-500 hover:text-blue-600">
               Cadastre-se
             </Link>
           </p>

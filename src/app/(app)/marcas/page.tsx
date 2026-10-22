@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import MarcaCard, { DeleteModal, EditModal, Marca } from '@/components/MarcaCard'
 import { listarMarcas, criarMarca, editarMarca, excluirMarca } from '@/services/marcaService'
+import { ApiError } from '@/lib/ApiError'
 
 export default function MarcasPage() {
   const [marcas, setMarcas] = useState<Marca[]>([])
@@ -18,6 +19,7 @@ export default function MarcasPage() {
 
   const [novaMarca, setNovaMarca] = useState('')
   const [adicionando, setAdicionando] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [searchTerm, setSearchTerm] = useState('')
 
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -44,12 +46,16 @@ export default function MarcasPage() {
     e.preventDefault()
     if (!novaMarca.trim() || adicionando) return
 
+    setFieldErrors({})
     setAdicionando(true)
     try {
       const criada = await criarMarca(novaMarca.trim())
       setMarcas(prev => [criada, ...prev])
       setNovaMarca('')
     } catch (err) {
+      if (err instanceof ApiError && err.fieldErrors) {
+        setFieldErrors(err.fieldErrors)
+      }
       mostrarErro(err instanceof Error ? err.message : 'Não foi possível criar a marca')
     } finally {
       setAdicionando(false)
@@ -62,14 +68,10 @@ export default function MarcasPage() {
     setEditModalOpen(true)
   }
 
-  // Salva a edição (chamado pelo EditModal)
+  // Salva a edição (chamado pelo EditModal, que já trata e exibe o próprio erro)
   const handleSaveEdit = async (id: string, novoNome: string) => {
-    try {
-      const atualizada = await editarMarca(id, novoNome)
-      setMarcas(prev => prev.map(marca => (marca.id === id ? atualizada : marca)))
-    } catch (err) {
-      mostrarErro(err instanceof Error ? err.message : 'Não foi possível editar a marca')
-    }
+    const atualizada = await editarMarca(id, novoNome)
+    setMarcas(prev => prev.map(marca => (marca.id === id ? atualizada : marca)))
   }
 
   // Abre o modal de confirmação de exclusão (em vez de excluir direto)
@@ -132,29 +134,38 @@ export default function MarcasPage() {
       {/* Barra de ações */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         {/* Formulário de cadastro */}
-        <form onSubmit={handleAddMarca} className="flex-1 flex gap-2 w-full sm:max-w-md">
-          <div className="relative flex-1">
-            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              value={novaMarca}
-              onChange={(e) => setNovaMarca(e.target.value)}
-              placeholder="Nome da marca"
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-            />
+        <form onSubmit={handleAddMarca} className="flex-1 min-w-0 flex flex-col gap-1 w-full sm:max-w-md">
+          <div className="flex gap-2">
+            <div className="relative flex-1 min-w-0">
+              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                value={novaMarca}
+                onChange={(e) => setNovaMarca(e.target.value)}
+                placeholder="Nome da marca"
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
+                  fieldErrors.nome
+                    ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                    : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                }`}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={!novaMarca.trim() || adicionando}
+              className="flex items-center gap-2 shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium px-3 sm:px-4 py-2 rounded-lg transition-colors"
+            >
+              <Plus size={20} />
+              {adicionando ? 'Adicionando...' : 'Adicionar'}
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={!novaMarca.trim() || adicionando}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium px-4 py-2 rounded-lg transition-colors"
-          >
-            <Plus size={20} />
-            {adicionando ? 'Adicionando...' : 'Adicionar'}
-          </button>
+          {fieldErrors.nome && (
+            <p className="text-xs text-red-600">{fieldErrors.nome}</p>
+          )}
         </form>
 
         {/* Busca */}
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full sm:w-56 lg:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
             type="text"
@@ -182,7 +193,7 @@ export default function MarcasPage() {
 
       {/* Grid de Marcas */}
       {marcasFiltradas.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {marcasFiltradas.map((marca) => (
             <MarcaCard
               key={marca.id}

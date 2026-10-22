@@ -1,6 +1,7 @@
 'use client'
 
 import { DadosGrafico } from '@/types/relatorio'
+import { useEffect, useState } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 
 interface GraficoPizzaProps {
@@ -10,12 +11,22 @@ interface GraficoPizzaProps {
 }
 
 export default function GraficoPizza({ dados, titulo, valorFormatado }: GraficoPizzaProps) {
+  // Em telas pequenas os rótulos dentro do gráfico não cabem; a legenda e o tooltip bastam
+  const [telaPequena, setTelaPequena] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)')
+    const atualizar = () => setTelaPequena(mq.matches)
+    atualizar()
+    mq.addEventListener('change', atualizar)
+    return () => mq.removeEventListener('change', atualizar)
+  }, [])
+
   // Se não houver dados ou todos os valores forem zero
   const hasData = dados.some(item => item.value > 0)
 
   if (!hasData) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 min-w-0">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">{titulo}</h3>
         <div className="h-64 flex items-center justify-center">
           <p className="text-gray-400">Sem dados disponíveis</p>
@@ -33,7 +44,7 @@ export default function GraficoPizza({ dados, titulo, valorFormatado }: GraficoP
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 min-w-0">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">{titulo}</h3>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
@@ -42,11 +53,11 @@ export default function GraficoPizza({ dados, titulo, valorFormatado }: GraficoP
               data={dados}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={80}
+              innerRadius={telaPequena ? 45 : 60}
+              outerRadius={telaPequena ? 65 : 80}
               paddingAngle={5}
               dataKey="value"
-              label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+              label={telaPequena ? false : ({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
               labelLine={false}
             >
               {dados.map((entry, index) => (

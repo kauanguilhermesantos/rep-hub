@@ -29,6 +29,11 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
   const [usuario, setUsuario] = useState<Usuario | null>(null)
   const pathname = usePathname()
 
+  // Fecha o menu do celular ao navegar para outra página
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
+
   // Busca os dados reais do usuário logado (usado no cabeçalho)
   useEffect(() => {
     getMe()
@@ -73,33 +78,35 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
           className={`
             fixed top-0 left-0 z-30 h-full bg-white border-r border-gray-200 
             transition-all duration-300 ease-in-out
-            ${sidebarOpen ? 'w-64' : 'w-20'}
+            w-64 max-w-[85vw] ${sidebarOpen ? 'lg:w-64' : 'lg:w-20'}
             ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           `}
         >
           {/* Logo e Toggle */}
           <div className={`
             flex items-center h-16 border-b border-gray-200 px-4
-            ${sidebarOpen ? 'justify-between' : 'justify-center'}
+            justify-between ${sidebarOpen ? '' : 'lg:justify-center'}
           `}>
-            {sidebarOpen ? (
-              <>
-                <h1 className="text-xl font-bold text-gray-800">RepHub</h1>
-                <button
-                  onClick={toggleSidebar}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <ChevronLeft size={20} className="text-gray-600" />
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={toggleSidebar}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
+            <h1 className={`text-xl font-bold text-gray-800 ${sidebarOpen ? '' : 'lg:hidden'}`}>RepHub</h1>
+            {/* Celular: botão fechar. Desktop: recolher/expandir */}
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
+              aria-label="Fechar menu"
+            >
+              <X size={20} className="text-gray-600" />
+            </button>
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors hidden lg:block"
+              aria-label={sidebarOpen ? 'Recolher menu' : 'Expandir menu'}
+            >
+              {sidebarOpen ? (
+                <ChevronLeft size={20} className="text-gray-600" />
+              ) : (
                 <ChevronRight size={20} className="text-gray-600" />
-              </button>
-            )}
+              )}
+            </button>
           </div>
 
           {/* Navegação */}
@@ -114,8 +121,8 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
                     <Link
                       href={item.href}
                       className={`
-                        flex items-center px-3 py-3 rounded-lg transition-colors
-                        ${sidebarOpen ? 'gap-3' : 'justify-center'}
+                        flex items-center gap-3 px-3 py-3 rounded-lg transition-colors
+                        ${sidebarOpen ? '' : 'lg:justify-center lg:gap-0'}
                         ${isActive 
                           ? 'bg-blue-50 text-blue-600' 
                           : 'text-gray-700 hover:bg-gray-100'
@@ -123,7 +130,7 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
                       `}
                     >
                       <Icon size={20} />
-                      {sidebarOpen && <span>{item.name}</span>}
+                      <span className={sidebarOpen ? '' : 'lg:hidden'}>{item.name}</span>
                     </Link>
                   </li>
                 )
@@ -135,21 +142,21 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
           <div className="border-t border-gray-200 p-4">
             <button
               className={`
-                flex items-center w-full px-3 py-3 rounded-lg text-red-600 
+                flex items-center gap-3 w-full px-3 py-3 rounded-lg text-red-600 
                 hover:bg-red-50 transition-colors
-                ${sidebarOpen ? 'gap-3' : 'justify-center'}
+                ${sidebarOpen ? '' : 'lg:justify-center lg:gap-0'}
               `}
               onClick={handleLogout}
             >
               <LogOut size={20} />
-              {sidebarOpen && <span>Sair</span>}
+              <span className={sidebarOpen ? '' : 'lg:hidden'}>Sair</span>
             </button>
           </div>
         </aside>
 
         {/* Main Content */}
         <div className={`
-          transition-all duration-300 ease-in-out
+          min-w-0 overflow-x-clip transition-all duration-300 ease-in-out
           ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}
         `}>
           {/* Header */}
@@ -160,6 +167,7 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
+                  aria-label="Abrir menu"
                 >
                   <Menu size={24} className="text-gray-600" />
                 </button>
@@ -173,14 +181,14 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
               {/* Avatar do Usuário */}
               <Link href="/perfil">
                 <div className="flex items-center gap-3">
-                  <div className="text-right hidden sm:block">
+                  <div className="text-right hidden sm:block max-w-[40vw] truncate">
                     {/* Primeiro e último nome do usuário logado */}
                     <p className="text-sm font-medium text-gray-700">
                       {usuario ? primeiroEUltimoNome(usuario.nomeCompleto) : ''}
                     </p>
                   </div>
                   {/* Avatar do Usuário (iniciais do nome) */}
-                  <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                  <div className="w-10 h-10 shrink-0 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
                     {usuario ? iniciais(usuario.nomeCompleto) : ''}
                   </div>
                 </div>
@@ -189,7 +197,7 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
           </header>
 
           {/* Page Content */}
-          <main className="p-4 sm:p-6 lg:p-8">
+          <main className="p-4 sm:p-6 lg:p-8 min-w-0">
             {children}
           </main>
         </div>

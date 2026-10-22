@@ -84,24 +84,24 @@ export default function FiltroPeriodo({ onChange }: FiltroPeriodoProps) {
         ))}
       </div>
 
-      <div className="flex items-center gap-2 lg:ml-auto">
+      <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
         <input
           type="date"
           value={dataInicioCustom}
           onChange={(e) => setDataInicioCustom(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          className="min-w-0 flex-1 sm:flex-none px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
         />
         <span className="text-gray-400 text-sm">até</span>
         <input
           type="date"
           value={dataFimCustom}
           onChange={(e) => setDataFimCustom(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          className="min-w-0 flex-1 sm:flex-none px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
         />
         <button
           onClick={aplicarCustom}
           disabled={!dataInicioCustom || !dataFimCustom}
-          className="px-3 py-1.5 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-full sm:w-auto px-3 py-1.5 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           Aplicar
         </button>
