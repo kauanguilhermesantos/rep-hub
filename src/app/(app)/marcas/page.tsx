@@ -10,6 +10,8 @@ import {
 import MarcaCard, { DeleteModal, EditModal, Marca } from '@/components/MarcaCard'
 import { listarMarcas, criarMarca, editarMarca, excluirMarca } from '@/services/marcaService'
 import { ApiError } from '@/lib/ApiError'
+import BotaoOcultarValores from '@/components/BotaoOcultarValores'
+import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
 
 export default function MarcasPage() {
   const [marcas, setMarcas] = useState<Marca[]>([])
@@ -21,6 +23,7 @@ export default function MarcasPage() {
   const [adicionando, setAdicionando] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [searchTerm, setSearchTerm] = useState('')
+  const { oculto, alternar } = useOcultarValores()
 
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [marcaParaEditar, setMarcaParaEditar] = useState<Marca | null>(null)
@@ -116,11 +119,14 @@ export default function MarcasPage() {
   return (
     <div className="space-y-8">
       {/* Cabeçalho */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Marcas</h1>
-        <p className="text-gray-600 mt-1">
-          Gerencie as marcas que você trabalha
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold text-gray-800">Marcas</h1>
+          <p className="text-gray-600 mt-1">
+            Gerencie as marcas que você trabalha
+          </p>
+        </div>
+        <BotaoOcultarValores oculto={oculto} onClick={alternar} />
       </div>
 
       {/* Mensagem de feedback (erros de criar/editar/excluir) */}
@@ -185,8 +191,11 @@ export default function MarcasPage() {
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
           <p className="text-sm text-gray-500 mb-1">Total de Pedidos</p>
-          <p className="text-2xl font-bold text-gray-800">
-            {marcas.reduce((acc, marca) => acc + marca.totalPedidos, 0)}
+          <p
+            className="text-2xl font-bold text-gray-800"
+            aria-label={oculto ? 'Valor oculto' : undefined}
+          >
+            {oculto ? VALOR_OCULTO : marcas.reduce((acc, marca) => acc + marca.totalPedidos, 0)}
           </p>
         </div>
       </div>
@@ -200,6 +209,7 @@ export default function MarcasPage() {
               marca={marca}
               onEdit={handleEditMarca}
               onDelete={handleRequestDelete}
+              oculto={oculto}
             />
           ))}
         </div>

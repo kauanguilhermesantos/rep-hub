@@ -1,4 +1,5 @@
 import { Calendar, Edit2, Package, Trash2, X } from "lucide-react";
+import { VALOR_OCULTO } from '@/lib/useOcultarValores'
 import { useState } from "react";
 import { ApiError } from "@/lib/ApiError";
 
@@ -136,7 +137,7 @@ export const DeleteModal = ({
                     </button>
                 </div>
                 <div className="p-4 sm:p-6">
-                    <p className="text-gray-700 mb-6 wrap-break-word">Tem certeza que deseja excluir a marca <span className="font-semibold">{marca.nome}</span>? Esta ação não pode ser desfeita.</p>
+                    <p className="text-gray-700 mb-6 break-words">Tem certeza que deseja excluir a marca <span className="font-semibold">{marca.nome}</span>? Esta ação não pode ser desfeita.</p>
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}
@@ -160,7 +161,7 @@ export const DeleteModal = ({
     )
 }
 
-export default function MarcaCard({ marca, onEdit, onDelete }: { marca: any, onEdit: (marca: any) => void, onDelete: (id: string) => void }) {
+export default function MarcaCard({ marca, onEdit, onDelete, oculto = false }: { marca: any, onEdit: (marca: any) => void, onDelete: (id: string) => void, oculto?: boolean }) {
     return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 min-w-0">
       <div className="p-4 sm:p-6">
@@ -205,8 +206,11 @@ export default function MarcaCard({ marca, onEdit, onDelete }: { marca: any, onE
             <Package size={18} className="text-gray-400" />
             <span className="text-sm font-medium">Total de pedidos</span>
           </div>
-          <span className="font-semibold text-gray-800 text-lg">
-            {marca.totalPedidos}
+          <span
+            className="font-semibold text-gray-800 text-lg"
+            aria-label={oculto ? 'Valor oculto' : undefined}
+          >
+            {oculto ? VALOR_OCULTO : marca.totalPedidos}
           </span>
         </div>
       </div>

@@ -11,11 +11,13 @@ import {
 import { RelatorioGeral, DadosGrafico } from '@/types/relatorio'
 import GraficoPizza from '@/components/GraficoPizza'
 import TabelaRelatorioMarcas from '@/components/TabelaRelatorioMarcas'
+import BotaoOcultarValores from '@/components/BotaoOcultarValores'
+import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
 import FiltroPeriodo, { PeriodoSelecionado } from '@/components/Filtroperiodo'
 import { buscarRelatorio } from '@/services/relatorioService'
 
 // Componente de Card de Resumo
-const SummaryCard = ({ title, value, icon: Icon, color, trend }: any) => (
+const SummaryCard = ({ title, value, icon: Icon, color, trend, oculto = false }: any) => (
   <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-md transition-all min-w-0">
     <div className="flex items-center justify-between mb-3">
       <div className={`p-3 rounded-lg bg-${color}-50`}>
@@ -28,12 +30,15 @@ const SummaryCard = ({ title, value, icon: Icon, color, trend }: any) => (
       )}
     </div>
     <p className="text-sm text-gray-500 mb-1">{title}</p>
-    <p className="text-xl sm:text-2xl font-bold text-gray-800 wrap-break-word">{value}</p>
+    <p className="text-xl sm:text-2xl font-bold text-gray-800 wrap-break-word" aria-label={oculto ? 'Valor oculto' : undefined}>
+      {oculto ? VALOR_OCULTO : value}
+    </p>
   </div>
 )
 
 export default function RelatoriosPage() {
   const [marcaSelecionada, setMarcaSelecionada] = useState('todas')
+  const { oculto, alternar } = useOcultarValores()
 
   const [dados, setDados] = useState<RelatorioGeral | null>(null)
   const [carregando, setCarregando] = useState(true)
@@ -100,6 +105,7 @@ export default function RelatoriosPage() {
             Análise detalhada do seu desempenho de vendas
           </p>
         </div>
+        <BotaoOcultarValores oculto={oculto} onClick={alternar} />
       </div>
 
       {/* Filtro de período */}
@@ -120,25 +126,29 @@ export default function RelatoriosPage() {
         <>
           {/* Cards de Resumo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <SummaryCard 
+            <SummaryCard
+              oculto={oculto}
               title="Total de Pedidos" 
               value={formatNumber(dados.totalPedidos)} 
               icon={Package} 
               color="blue" 
             />
-            <SummaryCard 
+            <SummaryCard
+              oculto={oculto}
               title="Total de Pares" 
               value={formatNumber(dados.totalPares)} 
               icon={ShoppingBag} 
               color="green" 
             />
-            <SummaryCard 
+            <SummaryCard
+              oculto={oculto}
               title="Valor em Vendas" 
               value={formatCurrency(dados.valorTotalVendas)} 
               icon={DollarSign} 
               color="yellow" 
             />
-            <SummaryCard 
+            <SummaryCard
+              oculto={oculto}
               title="Comissão Total" 
               value={formatCurrency(dados.valorTotalComissao)} 
               icon={Percent} 

@@ -19,6 +19,8 @@ import EditarPedidoModal from '@/components/EditarPedidoModal'
 import PedidoCard from '@/components/PedidoCard'
 import PedidoTabela from '@/components/Pedidotabela'
 import VisualizarPedidoModal from '@/components/VisualizarPedidoModal'
+import BotaoOcultarValores from '@/components/BotaoOcultarValores'
+import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
 import FiltroPeriodo, { PeriodoSelecionado } from '@/components/Filtroperiodo'
 import { listarPedidos, criarPedido, editarPedido, excluirPedido, PedidoFormPayload } from '@/services/pedidoService'
 import { listarMarcas } from '@/services/marcaService'
@@ -43,7 +45,7 @@ export interface Pedido {
 }
 
 // Componente de Card de Resumo
-const SummaryCard = ({ title, value, icon: Icon, color }: any) => (
+const SummaryCard = ({ title, value, icon: Icon, color, oculto = false }: any) => (
   <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 min-w-0">
     <div className="flex items-center justify-between mb-3">
       <div className={`p-3 rounded-lg bg-${color}-50`}>
@@ -51,7 +53,9 @@ const SummaryCard = ({ title, value, icon: Icon, color }: any) => (
       </div>
     </div>
     <p className="text-sm text-gray-500 mb-1">{title}</p>
-    <p className="text-xl sm:text-2xl font-bold text-gray-800 wrap-break-word">{value}</p>
+    <p className="text-xl sm:text-2xl font-bold text-gray-800 break-words" aria-label={oculto ? 'Valor oculto' : undefined}>
+      {oculto ? VALOR_OCULTO : value}
+    </p>
   </div>
 )
 
@@ -61,6 +65,7 @@ export default function PedidosPage() {
   const [carregando, setCarregando] = useState(true)
   const [erroCarregamento, setErroCarregamento] = useState('')
   const [mensagem, setMensagem] = useState('')
+  const { oculto, alternar } = useOcultarValores()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [visualizacao, setVisualizacao] = useState<'cards' | 'lista'>('cards')
@@ -149,13 +154,16 @@ export default function PedidosPage() {
             Gerencie todos os pedidos realizados
           </p>
         </div>
-        <button
-          onClick={() => setModalNovoPedidoOpen(true)}
-          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors w-full sm:w-auto"
-        >
-          <Plus size={20} />
-          Novo Pedido
-        </button>
+        <div className="flex items-center gap-2">
+          <BotaoOcultarValores oculto={oculto} onClick={alternar} />
+          <button
+            onClick={() => setModalNovoPedidoOpen(true)}
+            className="flex flex-1 sm:flex-none items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            <Plus size={20} />
+            Novo Pedido
+          </button>
+        </div>
       </div>
 
       {/* Mensagem de feedback (erros de excluir, por ex.) */}
@@ -185,24 +193,28 @@ export default function PedidosPage() {
           {/* Cards de Resumo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <SummaryCard
+              oculto={oculto}
               title="Total de Pedidos"
               value={totalPedidos}
               icon={Package}
               color="blue"
             />
             <SummaryCard
+              oculto={oculto}
               title="Total de Pares"
               value={totalPares}
               icon={ShoppingBag}
               color="green"
             />
             <SummaryCard
+              oculto={oculto}
               title="Valor em Vendas"
               value={totalVendas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               icon={DollarSign}
               color="yellow"
             />
             <SummaryCard
+              oculto={oculto}
               title="Comissão Total"
               value={totalComissao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               icon={Percent}

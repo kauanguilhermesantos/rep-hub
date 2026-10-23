@@ -14,6 +14,8 @@ import {
 import Link from 'next/link'
 
 import ResumoCard from '@/components/ResumoCard'
+import BotaoOcultarValores from '@/components/BotaoOcultarValores'
+import { useOcultarValores } from '@/lib/useOcultarValores'
 import MarcaVendasCard from '@/components/MarcaVendasCard'
 import PedidoRecenteCard from '@/components/PedidoRecenteCard'
 import { RelatorioGeral, MarcaRelatorio } from '@/types/relatorio'
@@ -78,6 +80,7 @@ export default function Home() {
   const [pedidosRecentes, setPedidosRecentes] = useState<Pedido[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erroCarregamento, setErroCarregamento] = useState('')
+  const { oculto, alternar } = useOcultarValores()
 
   // Dashboard mostra os últimos 30 dias, como o texto da tela já indicava
   useEffect(() => {
@@ -134,17 +137,20 @@ export default function Home() {
   return (
     <div className="space-y-8">
       {/* Cabeçalho da página */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-gray-600 mt-1">
-          Visão geral do seu desempenho e atividades recentes
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+          <p className="text-gray-600 mt-1">
+            Visão geral do seu desempenho e atividades recentes
+          </p>
+        </div>
+        <BotaoOcultarValores oculto={oculto} onClick={alternar} />
       </div>
 
       {/* Cards de Resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {summaryData.map((item, index) => (
-          <ResumoCard key={index} {...item} />
+          <ResumoCard key={index} {...item} oculto={oculto} />
         ))}
       </div>
 
