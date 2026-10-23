@@ -60,6 +60,7 @@ function mapPedido(p: PedidoApi): Pedido {
     valorComissao: p.valorComissao ?? 0,
     anexo: p.anexoUrl ? { nome: p.anexoUrl.split('/').pop() || 'Anexo', url: p.anexoUrl } : undefined,
     dataCadastro: formatarData(p.dataCadastro),
+    dataCadastroIso: p.dataCadastro.slice(0, 10),
   }
 }
 

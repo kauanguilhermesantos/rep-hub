@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Package, User, DollarSign, Tag, Percent } from 'lucide-react'
+import { X, Package, User, DollarSign, Tag, Percent, Calendar } from 'lucide-react'
 import SeletorEstadoCidade from '@/components/SeletorEstadoCidade'
 import { Marca } from '@/components/MarcaCard'
 import { Pedido } from '@/app/(app)/pedidos/page'
 import { PedidoFormPayload } from '@/services/pedidoService'
 import { ApiError } from '@/lib/ApiError'
+import { hojeIso } from '@/lib/formatoHora'
 
 interface EditarPedidoModalProps {
   isOpen: boolean
@@ -17,6 +18,7 @@ interface EditarPedidoModalProps {
 }
 
 export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, marcas }: EditarPedidoModalProps) {
+  const [data, setData] = useState('')
   const [cliente, setCliente] = useState('')
   const [marcaId, setMarcaId] = useState('')
   const [quantidade, setQuantidade] = useState('')
@@ -32,6 +34,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
   // Preencher o formulário quando o pedido for carregado
   useEffect(() => {
     if (pedido) {
+      setData(pedido.dataCadastroIso)
       setCliente(pedido.cliente)
       setMarcaId(pedido.marcaId)
       setQuantidade(pedido.pares.toString())
@@ -64,6 +67,7 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
     setSalvando(true)
     try {
       await onSave(pedido!.id, {
+        data,
         marcaId,
         cliente,
         quantPares: parseInt(quantidade) || 0,
@@ -102,6 +106,30 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <div className="flex items-center gap-1">
+                <Calendar size={16} />
+                <span>Data do Pedido <span className="text-red-500">*</span></span>
+              </div>
+            </label>
+            <input
+              type="date"
+              value={data}
+              onChange={(e) => setData(e.target.value)}
+              required
+              max={hojeIso()}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none transition-colors ${
+                fieldErrors.data
+                  ? "border-red-400 focus:ring-red-400 focus:border-red-400"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
+            />
+            {fieldErrors.data && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.data}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center gap-1">
                 <User size={16} />
                 <span>Cliente <span className="text-red-500">*</span></span>
               </div>
@@ -121,6 +149,17 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
               <p className="text-xs text-red-600 mt-1">{fieldErrors.cliente}</p>
             )}
           </div>
+
+          <SeletorEstadoCidade
+            estado={estado}
+            cidade={cidade}
+            onChange={(uf, nome) => {
+              setEstado(uf)
+              setCidade(nome)
+            }}
+            erroEstado={fieldErrors.estado}
+            erroCidade={fieldErrors.cidade}
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -251,17 +290,6 @@ export default function EditarPedidoModal({ isOpen, onClose, onSave, pedido, mar
               <p className="text-xs text-red-600 mt-1">{fieldErrors.condicaoPagamento}</p>
             )}
           </div>
-
-          <SeletorEstadoCidade
-            estado={estado}
-            cidade={cidade}
-            onChange={(uf, nome) => {
-              setEstado(uf)
-              setCidade(nome)
-            }}
-            erroEstado={fieldErrors.estado}
-            erroCidade={fieldErrors.cidade}
-          />
 
           <div className="bg-gray-50 p-3 rounded-lg">
             <p className="text-xs text-gray-500">
