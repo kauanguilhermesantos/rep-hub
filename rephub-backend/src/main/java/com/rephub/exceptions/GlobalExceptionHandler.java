@@ -24,11 +24,23 @@ public class GlobalExceptionHandler {
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erros);
     }
-
+    
     // Fallback para violação de índice único (ex: e-mail duplicado) que não
     // tenha sido tratada localmente no controller — evita um 500 cru.
     @ExceptionHandler(DuplicateKeyException.class)
     public ResponseEntity<String> handleDuplicateKey(DuplicateKeyException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body("Já existe um registro com esse valor único");
+    }
+
+    // Recurso não existe ou pertence a outro usuário
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public ResponseEntity<String> handleNaoEncontrado(RecursoNaoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    // Operação bloqueada por regra de negócio (ex.: alterar pedidos de viagem finalizada)
+    @ExceptionHandler(RegraNegocioException.class)
+    public ResponseEntity<String> handleRegraNegocio(RegraNegocioException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 }

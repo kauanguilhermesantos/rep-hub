@@ -42,4 +42,10 @@ next-env.d.ts
 
 
 ### VS Code ###
-.vscode/
+/.vscode/
+
+# Github Codespaces
+.github/
+
+# JetBrains IDEs
+.idea/
