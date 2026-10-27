@@ -23,6 +23,7 @@ public class PedidoService {
     private PedidoRepository pedidoRepository;
     private MarcaRepository marcaRepository;
     private UsuarioRepository usuarioRepository;
+    private ViagemService viagemService;
 
     // Retorna apenas os pedidos do usuário informado, do mais recente para o mais
     // antigo, já com usuário e marca enriquecidos. Se inicio/fim forem informados,
@@ -154,6 +155,8 @@ public class PedidoService {
             return null;
         }
         pedidoRepository.deleteById(id);
+        // Remove a referência de qualquer viagem (a viagem guarda só o id do pedido)
+        viagemService.desassociarPedidoExcluido(id);
         return pedido;
     }
 }

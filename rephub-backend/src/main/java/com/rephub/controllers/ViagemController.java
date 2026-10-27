@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.rephub.dto.AssociarPedidosRequest;
+import com.rephub.dto.PedidoViagemResponse;
+import com.rephub.dto.PedidosViagemResponse;
 import com.rephub.dto.ViagemRequest;
 import com.rephub.dto.ViagemResponse;
 import com.rephub.models.StatusViagem;
@@ -70,5 +74,36 @@ public class ViagemController {
                                                     @PathVariable String id,
                                                     @Valid @RequestBody ViagemRequest request) {
         return ResponseEntity.ok(viagemService.atualizar(usuarioId(authentication), id, request));
+    }
+
+    // Finalização: idempotente; repetir a chamada devolve a viagem sem alterar a data original
+    @PostMapping("/{id}/finalizar")
+    public ResponseEntity<ViagemResponse> finalizar(Authentication authentication, @PathVariable String id) {
+        return ResponseEntity.ok(viagemService.finalizar(usuarioId(authentication), id));
+    }
+
+    @GetMapping("/{id}/pedidos")
+    public ResponseEntity<PedidosViagemResponse> pedidos(Authentication authentication, @PathVariable String id) {
+        return ResponseEntity.ok(viagemService.pedidos(usuarioId(authentication), id));
+    }
+
+    @GetMapping("/{id}/pedidos-disponiveis")
+    public ResponseEntity<List<PedidoViagemResponse>> pedidosDisponiveis(Authentication authentication,
+                                                                         @PathVariable String id) {
+        return ResponseEntity.ok(viagemService.pedidosDisponiveis(usuarioId(authentication), id));
+    }
+
+    @PostMapping("/{id}/pedidos")
+    public ResponseEntity<PedidosViagemResponse> associarPedidos(Authentication authentication,
+                                                                 @PathVariable String id,
+                                                                 @Valid @RequestBody AssociarPedidosRequest request) {
+        return ResponseEntity.ok(viagemService.associarPedidos(usuarioId(authentication), id, request.getPedidoIds()));
+    }
+
+    @DeleteMapping("/{id}/pedidos/{pedidoId}")
+    public ResponseEntity<PedidosViagemResponse> removerPedido(Authentication authentication,
+                                                               @PathVariable String id,
+                                                               @PathVariable String pedidoId) {
+        return ResponseEntity.ok(viagemService.removerPedido(usuarioId(authentication), id, pedidoId));
     }
 }
