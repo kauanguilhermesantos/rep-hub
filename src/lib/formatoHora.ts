@@ -17,3 +17,12 @@ export function formatarDataHora(iso?: string): string {
   if (!iso) return "—"
   return new Date(iso).toLocaleString("pt-BR")
 }
+
+// Data pura "yyyy-MM-dd" (como o backend envia dataInicio) -> "dd/mm/aaaa".
+// Não usar new Date("yyyy-MM-dd"): ele interpreta como UTC e mostra o dia anterior no Brasil.
+export function formatarDataIso(iso?: string | null): string {
+  if (!iso) return "—"
+  const [ano, mes, dia] = iso.slice(0, 10).split("-")
+  if (!ano || !mes || !dia) return "—"
+  return `${dia}/${mes}/${ano}`
+}

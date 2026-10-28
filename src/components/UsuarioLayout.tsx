@@ -11,6 +11,7 @@ import {
   ShoppingBag, 
   Tag, 
   BarChart3, 
+  MapPin,
   LogOut,
   ChevronLeft,
   ChevronRight
@@ -48,6 +49,7 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
     { name: 'Início', href: '/home', icon: Home },
     { name: 'Pedidos', href: '/pedidos', icon: ShoppingBag },
     { name: 'Marcas', href: '/marcas', icon: Tag },
+    { name: 'Viagens', href: '/viagens', icon: MapPin },
     { name: 'Relatórios', href: '/relatorios', icon: BarChart3 },
   ]
 
@@ -113,7 +115,8 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
           <nav className="flex-1 py-6">
             <ul className="space-y-2 px-3">
               {navigation.map((item) => {
-                const isActive = pathname === item.href
+                // Subrotas (ex.: /viagens/nova) também mantêm o item ativo
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                 const Icon = item.icon
                 
                 return (
