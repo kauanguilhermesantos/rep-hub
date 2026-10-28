@@ -17,14 +17,14 @@ export default function ViagemCard({ viagem, ocultarValores = false }: ViagemCar
   return (
     <article className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 min-w-0 flex flex-col gap-4">
       <header className="flex items-start justify-between gap-3">
-        <h2 className="text-lg font-semibold text-gray-800 break-words min-w-0">{viagem.titulo}</h2>
+        <h2 className="text-lg font-semibold text-gray-800 wrap-break-word min-w-0">{viagem.titulo}</h2>
         <StatusViagemBadge status={viagem.status} />
       </header>
 
       {roteiro.length > 0 && (
         <p className="flex items-start gap-2 text-sm text-gray-600 min-w-0">
           <MapPin size={16} className="shrink-0 mt-0.5 text-gray-400" aria-hidden="true" />
-          <span className="break-words min-w-0">
+          <span className="wrap-break-word min-w-0">
             <span className="sr-only">Roteiro: </span>
             {roteiro.join(' → ')}
           </span>
@@ -55,7 +55,7 @@ export default function ViagemCard({ viagem, ocultarValores = false }: ViagemCar
           <div className="min-w-0">
             <dt className="text-gray-500">Total de despesas</dt>
             <dd
-              className="font-medium text-gray-800 break-words"
+              className="font-medium text-gray-800 wrap-break-word"
               aria-label={ocultarValores ? 'Valor oculto' : undefined}
             >
               {ocultarValores ? VALOR_OCULTO : formatarMoeda(viagem.totalDespesas ?? 0)}

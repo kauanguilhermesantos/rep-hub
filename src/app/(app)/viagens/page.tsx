@@ -107,7 +107,7 @@ export default function ViagensPage() {
         <div role="alert" className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
           <div className="flex items-start gap-2 min-w-0">
             <AlertCircle size={20} className="shrink-0" aria-hidden="true" />
-            <span className="break-words">{erro}</span>
+            <span className="wrap-break-word">{erro}</span>
           </div>
           <button
             type="button"
