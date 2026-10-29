@@ -38,3 +38,63 @@ export async function listarViagens(filtros: FiltrosViagens = {}): Promise<Viage
   }
   return (await response.json()) as Viagem[]
 }
+
+// Corpo aceito pelo backend em POST/PUT. Dono, status e data de finalização NÃO fazem parte:
+// o backend os define a partir da autenticação e das regras de negócio.
+export interface ViagemPayload {
+  titulo: string
+  roteiro: string[]
+  dataInicio: string // yyyy-MM-dd
+  observacoes?: string | null
+}
+
+export async function buscarViagem(id: string): Promise<Viagem> {
+  const response = await authFetch(`/api/viagens/${encodeURIComponent(id)}`)
+  if (!response.ok) {
+    await lancarErroApi(response, "Não foi possível carregar a viagem")
+  }
+  return (await response.json()) as Viagem
+}
+
+export async function criarViagem(payload: ViagemPayload): Promise<Viagem> {
+  const response = await authFetch("/api/viagens", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  })
+  if (!response.ok) {
+    await lancarErroApi(response, "Não foi possível cadastrar a viagem")
+  }
+  return (await response.json()) as Viagem
+}
+
+export async function atualizarViagem(id: string, payload: ViagemPayload): Promise<Viagem> {
+  const response = await authFetch(`/api/viagens/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  })
+  if (!response.ok) {
+    await lancarErroApi(response, "Não foi possível salvar as alterações")
+  }
+  return (await response.json()) as Viagem
+}
+
+// Mensagem de sucesso exibida na listagem depois de salvar (sobrevive à troca de página)
+const CHAVE_MENSAGEM = "rephub:mensagem-viagem"
+
+export function guardarMensagemViagem(mensagem: string): void {
+  try {
+    sessionStorage.setItem(CHAVE_MENSAGEM, mensagem)
+  } catch {
+    // sem armazenamento: a mensagem simplesmente não aparece
+  }
+}
+
+export function consumirMensagemViagem(): string {
+  try {
+    const mensagem = sessionStorage.getItem(CHAVE_MENSAGEM) ?? ""
+    if (mensagem) sessionStorage.removeItem(CHAVE_MENSAGEM)
+    return mensagem
+  } catch {
+    return ""
+  }
+}

@@ -49,3 +49,6 @@ next-env.d.ts
 
 # JetBrains IDEs
 .idea/
+
+# Documentação
+/docs

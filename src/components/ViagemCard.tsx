@@ -1,4 +1,5 @@
-import { CalendarDays, CalendarCheck, MapPin, ShoppingBag, Wallet } from 'lucide-react'
+import Link from 'next/link'
+import { CalendarDays, Pencil, CalendarCheck, MapPin, ShoppingBag, Wallet } from 'lucide-react'
 import StatusViagemBadge from '@/components/StatusViagemBadge'
 import { Viagem } from '@/services/viagensService'
 import { formatarDataHora, formatarDataIso } from '@/lib/formatoHora'
@@ -71,6 +72,16 @@ export default function ViagemCard({ viagem, ocultarValores = false }: ViagemCar
           </div>
         </div>
       </dl>
+
+      <footer className="pt-3 border-t border-gray-100">
+        <Link
+          href={`/viagens/${viagem.id}/editar`}
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          <Pencil size={14} aria-hidden="true" />
+          Editar<span className="sr-only"> {viagem.titulo}</span>
+        </Link>
+      </footer>
     </article>
   )
 }
