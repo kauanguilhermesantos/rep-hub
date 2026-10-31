@@ -73,7 +73,13 @@ export default function ViagemCard({ viagem, ocultarValores = false }: ViagemCar
         </div>
       </dl>
 
-      <footer className="pt-3 border-t border-gray-100">
+      <footer className="pt-3 border-t border-gray-100 flex flex-wrap gap-2">
+        <Link
+          href={`/viagens/${viagem.id}`}
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Ver detalhes<span className="sr-only"> de {viagem.titulo}</span>
+        </Link>
         <Link
           href={`/viagens/${viagem.id}/editar`}
           className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
