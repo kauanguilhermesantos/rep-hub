@@ -98,3 +98,12 @@ export function consumirMensagemViagem(): string {
     return ""
   }
 }
+
+// POST /api/viagens/{id}/finalizar — idempotente no backend: repetir não muda a data original
+export async function finalizarViagem(id: string): Promise<Viagem> {
+  const response = await authFetch(`/api/viagens/${encodeURIComponent(id)}/finalizar`, { method: "POST" })
+  if (!response.ok) {
+    await lancarErroApi(response, "Não foi possível finalizar a viagem")
+  }
+  return (await response.json()) as Viagem
+}

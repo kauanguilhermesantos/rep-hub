@@ -1,62 +1,39 @@
 "use client"
 
-import { useEffect } from "react"
 import { X } from "lucide-react"
+import { ReactNode } from "react"
 
 interface ModalProps {
-  children: React.ReactNode
-  isOpen?: boolean
-  onClose?: () => void
-  title?: string
+  isOpen: boolean
+  onClose: () => void
+  title: string
+  children: ReactNode
+  // Opcional: classe de largura máxima (padrão: max-w-md)
+  larguraMaxima?: string
 }
 
-export default function Modal({ children, isOpen = true, onClose, title }: ModalProps) {
-  useEffect(() => {
-    if (!isOpen) return
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose?.()
-    }
-
-    document.addEventListener("keydown", handleKeyDown)
-    return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [isOpen, onClose])
-
+export default function Modal({ isOpen, onClose, title, children, larguraMaxima = "max-w-md" }: ModalProps) {
   if (!isOpen) return null
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={title ? "modal-title" : undefined}
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose?.()
-      }}
+      className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50"
+      onClick={onClose}
     >
-      <div className="w-full max-w-lg rounded-xl bg-white shadow-xl">
-        {(title || onClose) && (
-          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-            {title ? (
-              <h2 id="modal-title" className="text-lg font-semibold text-gray-900">
-                {title}
-              </h2>
-            ) : (
-              <span />
-            )}
-            {onClose && (
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-                aria-label="Fechar modal"
-              >
-                <X size={20} />
-              </button>
-            )}
-          </div>
-        )}
-        <div className="p-6">{children}</div>
+      <div
+        className={`bg-white rounded-2xl shadow-xl w-full ${larguraMaxima} p-4 sm:p-6 max-h-[90vh] overflow-y-auto`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 min-w-0 wrap-break-word      ">{title}</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        {children}
       </div>
     </div>
   )

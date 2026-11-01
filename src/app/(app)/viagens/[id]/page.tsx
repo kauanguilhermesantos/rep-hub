@@ -5,20 +5,24 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import {
   AlertCircle, ArrowLeft, CalendarCheck, CalendarDays, CheckCircle2, Info,
-  MapPin, Pencil, Plus, ShoppingBag, Trash2, Wallet, X,
+  Flag, Lock, MapPin, Pencil, Plus, ShoppingBag, Trash2, Unlink, Wallet, X,
 } from 'lucide-react'
 
 import ResumoCard from '@/components/ResumoCard'
 import StatusViagemBadge from '@/components/StatusViagemBadge'
 import BotaoOcultarValores from '@/components/BotaoOcultarValores'
 import DespesaModal from '@/components/DespesaModal'
+import AssociarPedidosModal from '@/components/AssociarPedidosModal'
+import FinalizarViagemModal from '@/components/FinalizarViagemModal'
 import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
-import { buscarViagem, Viagem } from '@/services/viagensService'
+import { buscarViagem, finalizarViagem, Viagem } from '@/services/viagensService'
+import { listarPedidosDaViagem, PedidosDaViagem, removerPedidoDaViagem } from '@/services/viagemPedidosService'
 import {
   atualizarDespesa, criarDespesa, DespesaPayload, Despesa, DespesasViagem,
   excluirDespesa, listarDespesas, rotuloCategoria, CATEGORIAS,
 } from '@/services/despesasService'
-import { formatarDataHora, formatarDataIso } from '@/lib/formatoHora'
+import { PedidoDaViagem } from '@/services/viagemPedidosService'
+import { formatarData, formatarDataHora, formatarDataIso } from '@/lib/formatoHora'
 import { formatarMoeda } from '@/lib/formatoMoeda'
 
 export default function DetalheViagemPage() {
@@ -28,6 +32,7 @@ export default function DetalheViagemPage() {
   // Tudo que aparece (inclusive totais) vem do backend; nada é somado aqui
   const [viagem, setViagem] = useState<Viagem | null>(null)
   const [despesas, setDespesas] = useState<DespesasViagem | null>(null)
+  const [pedidos, setPedidos] = useState<PedidosDaViagem | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [atualizando, setAtualizando] = useState(false)
   const [erro, setErro] = useState('')
@@ -36,6 +41,9 @@ export default function DetalheViagemPage() {
   const [modalAberto, setModalAberto] = useState(false)
   const [emEdicao, setEmEdicao] = useState<Despesa | null>(null)
   const [excluindoId, setExcluindoId] = useState<string | null>(null)
+  const [modalPedidos, setModalPedidos] = useState(false)
+  const [modalFinalizar, setModalFinalizar] = useState(false)
+  const [removendoPedidoId, setRemovendoPedidoId] = useState<string | null>(null)
   const { oculto, alternar } = useOcultarValores()
   const requisicaoAtual = useRef(0)
 
@@ -44,10 +52,11 @@ export default function DetalheViagemPage() {
     setErro('')
     setAtualizando(true)
     try {
-      const [v, d] = await Promise.all([buscarViagem(id), listarDespesas(id)])
+      const [v, d, p] = await Promise.all([buscarViagem(id), listarDespesas(id), listarPedidosDaViagem(id)])
       if (req !== requisicaoAtual.current) return
       setViagem(v)
       setDespesas(d)
+      setPedidos(p)
     } catch (err) {
       if (req !== requisicaoAtual.current) return
       setErro(err instanceof Error ? err.message : 'Não foi possível carregar a viagem')
@@ -101,6 +110,34 @@ export default function DetalheViagemPage() {
     }
   }
 
+  async function removerPedido(pedido: PedidoDaViagem) {
+    if (!window.confirm(`Remover o pedido de "${pedido.cliente}" desta viagem? O pedido em si não será excluído.`)) return
+    setRemovendoPedidoId(pedido.id)
+    setErroAcao('')
+    try {
+      await removerPedidoDaViagem(id, pedido.id)
+      setMensagem('Pedido removido da viagem.')
+    } catch (err) {
+      setMensagem('')
+      setErroAcao(err instanceof Error ? err.message : 'Não foi possível remover o pedido da viagem')
+    } finally {
+      setRemovendoPedidoId(null)
+      await carregar() // reflete também mudanças feitas em outra sessão (ex.: viagem finalizada)
+    }
+  }
+
+  async function finalizar() {
+    try {
+      await finalizarViagem(id)
+    } catch (err) {
+      await carregar() // a viagem pode ter sido alterada em outra sessão
+      throw err
+    }
+    setErroAcao('')
+    setMensagem('Viagem finalizada com sucesso.')
+    await carregar() // status, data de finalização e totais vêm do backend
+  }
+
   if (carregando) {
     return (
       <div className="flex justify-center py-16" role="status" aria-live="polite">
@@ -110,7 +147,7 @@ export default function DetalheViagemPage() {
     )
   }
 
-  if (!viagem || !despesas) {
+  if (!viagem || !despesas || !pedidos) {
     return (
       <div className="space-y-4">
         <Link href="/viagens" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
@@ -150,6 +187,15 @@ export default function DetalheViagemPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <BotaoOcultarValores oculto={oculto} onClick={alternar} />
+          {!finalizada && (
+            <button
+              type="button"
+              onClick={() => setModalFinalizar(true)}
+              className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Flag size={16} aria-hidden="true" /> Finalizar viagem
+            </button>
+          )}
           <Link
             href={`/viagens/${viagem.id}/editar`}
             className="flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -164,6 +210,23 @@ export default function DetalheViagemPage() {
           <AlertCircle size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
           <span className="flex-1 wrap-break-word">{erro} Os dados exibidos podem estar desatualizados.</span>
           <button type="button" onClick={carregar} className="underline shrink-0">Tentar novamente</button>
+        </div>
+      )}
+
+      {mensagem && (
+        <div role="status" className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+          <CheckCircle2 size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
+          <span className="flex-1">{mensagem}</span>
+          <button type="button" onClick={() => setMensagem('')} aria-label="Fechar mensagem" className="p-0.5 rounded hover:bg-green-100">
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {erroAcao && (
+        <div role="alert" className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <AlertCircle size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
+          <span className="wrap-break-word">{erroAcao}</span>
         </div>
       )}
 
@@ -243,24 +306,7 @@ export default function DetalheViagemPage() {
           <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm">
             <Info size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
             <span>Esta viagem está finalizada, mas as despesas ainda podem ser adicionadas, editadas e excluídas.</span>
-          </div>
-        )}
-
-        {mensagem && (
-          <div role="status" className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-            <CheckCircle2 size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
-            <span className="flex-1">{mensagem}</span>
-            <button type="button" onClick={() => setMensagem('')} aria-label="Fechar mensagem" className="p-0.5 rounded hover:bg-green-100">
-              <X size={16} />
-            </button>
-          </div>
-        )}
-
-        {erroAcao && (
-          <div role="alert" className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            <AlertCircle size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
-            <span className="wrap-break-word">{erroAcao}</span>
-          </div>
+          </div>  
         )}
 
         {despesas.despesas.length === 0 ? (
@@ -315,6 +361,95 @@ export default function DetalheViagemPage() {
           </ul>
         )}
       </section>
+
+      {/* Pedidos associados (referências a pedidos existentes) */}
+      <section aria-labelledby="titulo-pedidos" className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 id="titulo-pedidos" className="text-lg font-semibold text-gray-800">Pedidos associados</h2>
+          {!finalizada && (
+            <button
+              type="button"
+              onClick={() => setModalPedidos(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus size={18} aria-hidden="true" /> Adicionar pedidos
+            </button>
+          )}
+        </div>
+
+        {finalizada && (
+          <div className="flex items-start gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 text-sm">
+            <Lock size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
+            <span>Os pedidos desta viagem estão bloqueados porque ela foi finalizada. A consulta continua disponível.</span>
+          </div>
+        )}
+
+        {pedidos.pedidos.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <ResumoCard title="Valor dos pedidos" value={formatarMoeda(pedidos.valorTotalPedidos)} icon={ShoppingBag} color="green" oculto={oculto} />
+            <ResumoCard title="Comissão dos pedidos" value={formatarMoeda(pedidos.valorTotalComissao)} icon={ShoppingBag} color="purple" oculto={oculto} />
+          </div>
+        )}
+
+        {pedidos.pedidos.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 py-10 px-4 text-center">
+            <ShoppingBag size={36} className="mx-auto text-gray-300 mb-3" aria-hidden="true" />
+            <p className="text-gray-700 font-medium">Nenhum pedido associado a esta viagem</p>
+            {!finalizada && <p className="text-sm text-gray-500 mt-1">Use “Adicionar pedidos” para vincular pedidos já cadastrados.</p>}
+          </div>
+        ) : (
+          <ul className={`space-y-3 transition-opacity ${atualizando ? 'opacity-60' : ''}`} aria-busy={atualizando}>
+            {pedidos.pedidos.map((p) => (
+              <li key={p.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-800 wrap-break-word">{p.cliente}</p>
+                    <p className="text-sm text-gray-500 wrap-break-word">
+                      {p.marcaNome ?? 'Marca removida'} · {p.cidade ? `${p.cidade}${p.estado ? ` - ${p.estado}` : ''}` : '—'} · {formatarData(p.dataCadastro)}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between sm:justify-end gap-3">
+                    <p className="text-lg font-semibold text-gray-800 whitespace-nowrap" aria-label={oculto ? 'Valor oculto' : undefined}>
+                      {mostrarValor(p.valorTotal)}
+                    </p>
+                    {!finalizada && (
+                      <button
+                        type="button"
+                        onClick={() => removerPedido(p)}
+                        disabled={removendoPedidoId === p.id}
+                        aria-label={`Remover o pedido de ${p.cliente} da viagem`}
+                        className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                      >
+                        <Unlink size={18} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <AssociarPedidosModal
+        isOpen={modalPedidos}
+        onClose={() => setModalPedidos(false)}
+        viagemId={viagem.id}
+        ocultarValores={oculto}
+        onAssociados={async (qtd) => {
+          setErroAcao('')
+          setMensagem(qtd === 1 ? 'Pedido associado à viagem.' : `${qtd} pedidos associados à viagem.`)
+          await carregar()
+        }}
+        onViagemAlterada={carregar}
+      />
+
+      <FinalizarViagemModal
+        isOpen={modalFinalizar}
+        onClose={() => setModalFinalizar(false)}
+        titulo={viagem.titulo}
+        onConfirmar={finalizar}
+      />
 
       <DespesaModal
         isOpen={modalAberto}
