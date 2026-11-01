@@ -107,3 +107,15 @@ export async function finalizarViagem(id: string): Promise<Viagem> {
   }
   return (await response.json()) as Viagem
 }
+
+// Quantidade de cidades visitadas = municípios cadastrados no roteiro da viagem (ignora itens vazios)
+export function contarCidades(roteiro?: string[] | null): number {
+  return (roteiro ?? []).filter((c) => c && c.trim() !== "").length
+}
+
+// "1 cidade visitada" / "3 cidades visitadas"; null quando não há cidades (nada a exibir)
+export function textoCidadesVisitadas(roteiro?: string[] | null): string | null {
+  const total = contarCidades(roteiro)
+  if (total === 0) return null
+  return `${total} ${total === 1 ? "cidade visitada" : "cidades visitadas"}`
+}

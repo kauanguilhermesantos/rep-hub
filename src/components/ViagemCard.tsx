@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { CalendarDays, Pencil, CalendarCheck, MapPin, ShoppingBag, Wallet } from 'lucide-react'
 import StatusViagemBadge from '@/components/StatusViagemBadge'
-import { Viagem } from '@/services/viagensService'
+import { textoCidadesVisitadas, Viagem } from '@/services/viagensService'
 import { formatarDataHora, formatarDataIso } from '@/lib/formatoHora'
 import { formatarMoeda } from '@/lib/formatoMoeda'
 import { VALOR_OCULTO } from '@/lib/useOcultarValores'
@@ -12,7 +12,7 @@ interface ViagemCardProps {
 }
 
 export default function ViagemCard({ viagem, ocultarValores = false }: ViagemCardProps) {
-  const roteiro = viagem.roteiro ?? []
+  const cidadesVisitadas = textoCidadesVisitadas(viagem.roteiro)
   const finalizada = viagem.status === 'FINALIZADA'
 
   return (
@@ -22,13 +22,10 @@ export default function ViagemCard({ viagem, ocultarValores = false }: ViagemCar
         <StatusViagemBadge status={viagem.status} />
       </header>
 
-      {roteiro.length > 0 && (
-        <p className="flex items-start gap-2 text-sm text-gray-600 min-w-0">
-          <MapPin size={16} className="shrink-0 mt-0.5 text-gray-400" aria-hidden="true" />
-          <span className="wrap-break-word min-w-0">
-            <span className="sr-only">Roteiro: </span>
-            {roteiro.join(' → ')}
-          </span>
+      {cidadesVisitadas && (
+        <p className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
+          <MapPin size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
+          <span className="wrap-break-word min-w-0">{cidadesVisitadas}</span>
         </p>
       )}
 
