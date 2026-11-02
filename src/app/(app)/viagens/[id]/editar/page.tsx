@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { AlertCircle } from 'lucide-react'
 import ViagemForm from '@/components/ViagemForm'
-import { atualizarViagem, buscarViagem, guardarMensagemViagem, Viagem, ViagemPayload } from '@/services/viagensService'
+import { atualizarViagem, buscarViagem, Viagem, ViagemPayload } from '@/services/viagensService'
+import { notificar } from '@/services/notificacoesService'
 
 export default function EditarViagemPage() {
   const router = useRouter()
@@ -34,7 +35,7 @@ export default function EditarViagemPage() {
 
   async function salvar(payload: ViagemPayload) {
     await atualizarViagem(id, payload)
-    guardarMensagemViagem('Viagem atualizada com sucesso.')
+    notificar.sucesso('Viagem atualizada com sucesso.')
     router.push('/viagens')
   }
 

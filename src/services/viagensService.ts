@@ -78,27 +78,6 @@ export async function atualizarViagem(id: string, payload: ViagemPayload): Promi
   return (await response.json()) as Viagem
 }
 
-// Mensagem de sucesso exibida na listagem depois de salvar (sobrevive à troca de página)
-const CHAVE_MENSAGEM = "rephub:mensagem-viagem"
-
-export function guardarMensagemViagem(mensagem: string): void {
-  try {
-    sessionStorage.setItem(CHAVE_MENSAGEM, mensagem)
-  } catch {
-    // sem armazenamento: a mensagem simplesmente não aparece
-  }
-}
-
-export function consumirMensagemViagem(): string {
-  try {
-    const mensagem = sessionStorage.getItem(CHAVE_MENSAGEM) ?? ""
-    if (mensagem) sessionStorage.removeItem(CHAVE_MENSAGEM)
-    return mensagem
-  } catch {
-    return ""
-  }
-}
-
 // POST /api/viagens/{id}/finalizar — idempotente no backend: repetir não muda a data original
 export async function finalizarViagem(id: string): Promise<Viagem> {
   const response = await authFetch(`/api/viagens/${encodeURIComponent(id)}/finalizar`, { method: "POST" })

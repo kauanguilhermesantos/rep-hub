@@ -2,15 +2,16 @@
 
 import { useRouter } from 'next/navigation'
 import ViagemForm from '@/components/ViagemForm'
-import { criarViagem, guardarMensagemViagem, ViagemPayload } from '@/services/viagensService'
+import { criarViagem, ViagemPayload } from '@/services/viagensService'
+import { notificar } from '@/services/notificacoesService'
 
 export default function NovaViagemPage() {
   const router = useRouter()
 
   async function salvar(payload: ViagemPayload) {
     await criarViagem(payload)
-    // A listagem recarrega do backend ao abrir e mostra a mensagem de sucesso
-    guardarMensagemViagem('Viagem cadastrada com sucesso.')
+    // A notificação continua visível na listagem, que recarrega do backend ao abrir
+    notificar.sucesso('Viagem cadastrada com sucesso.')
     router.push('/viagens')
   }
 

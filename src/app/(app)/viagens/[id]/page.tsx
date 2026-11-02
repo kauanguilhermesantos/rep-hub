@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import {
-  AlertCircle, ArrowLeft, CalendarCheck, CalendarDays, CheckCircle2, Info,
-  Flag, Lock, MapPin, Pencil, Plus, ShoppingBag, Trash2, Unlink, Wallet, X,
+  AlertCircle, ArrowLeft, CalendarCheck, CalendarDays, Info,
+  Flag, Lock, MapPin, Pencil, Plus, ShoppingBag, Trash2, Unlink, Wallet,
 } from 'lucide-react'
 
 import ResumoCard from '@/components/ResumoCard'
@@ -21,6 +21,7 @@ import {
   atualizarDespesa, criarDespesa, DespesaPayload, Despesa, DespesasViagem,
   excluirDespesa, listarDespesas, rotuloCategoria, CATEGORIAS,
 } from '@/services/despesasService'
+import { notificar } from '@/services/notificacoesService'
 import { PedidoDaViagem } from '@/services/viagemPedidosService'
 import { formatarData, formatarDataHora, formatarDataIso } from '@/lib/formatoHora'
 import { formatarMoeda } from '@/lib/formatoMoeda'
@@ -36,8 +37,6 @@ export default function DetalheViagemPage() {
   const [carregando, setCarregando] = useState(true)
   const [atualizando, setAtualizando] = useState(false)
   const [erro, setErro] = useState('')
-  const [mensagem, setMensagem] = useState('')
-  const [erroAcao, setErroAcao] = useState('')
   const [modalAberto, setModalAberto] = useState(false)
   const [emEdicao, setEmEdicao] = useState<Despesa | null>(null)
   const [excluindoId, setExcluindoId] = useState<string | null>(null)
@@ -85,26 +84,23 @@ export default function DetalheViagemPage() {
   async function salvarDespesa(payload: DespesaPayload) {
     if (emEdicao) {
       await atualizarDespesa(id, emEdicao.id, payload)
-      setMensagem('Despesa atualizada com sucesso.')
+      notificar.sucesso('Despesa atualizada com sucesso.')
     } else {
       await criarDespesa(id, payload)
-      setMensagem('Despesa adicionada com sucesso.')
+      notificar.sucesso('Despesa adicionada com sucesso.')
     }
-    setErroAcao('')
     await carregar() // total e lista vêm de novo do backend
   }
 
   async function excluir(despesa: Despesa) {
     if (!window.confirm(`Excluir a despesa "${despesa.descricao}"?`)) return
     setExcluindoId(despesa.id)
-    setErroAcao('')
     try {
       await excluirDespesa(id, despesa.id)
-      setMensagem('Despesa excluída com sucesso.')
+      notificar.sucesso('Despesa excluída com sucesso.')
       await carregar()
     } catch (err) {
-      setMensagem('')
-      setErroAcao(err instanceof Error ? err.message : 'Não foi possível excluir a despesa')
+      notificar.erro(err instanceof Error ? err.message : 'Não foi possível excluir a despesa')
     } finally {
       setExcluindoId(null)
     }
@@ -113,13 +109,11 @@ export default function DetalheViagemPage() {
   async function removerPedido(pedido: PedidoDaViagem) {
     if (!window.confirm(`Remover o pedido de "${pedido.cliente}" desta viagem? O pedido em si não será excluído.`)) return
     setRemovendoPedidoId(pedido.id)
-    setErroAcao('')
     try {
       await removerPedidoDaViagem(id, pedido.id)
-      setMensagem('Pedido removido da viagem.')
+      notificar.sucesso('Pedido removido da viagem.')
     } catch (err) {
-      setMensagem('')
-      setErroAcao(err instanceof Error ? err.message : 'Não foi possível remover o pedido da viagem')
+      notificar.erro(err instanceof Error ? err.message : 'Não foi possível remover o pedido da viagem')
     } finally {
       setRemovendoPedidoId(null)
       await carregar() // reflete também mudanças feitas em outra sessão (ex.: viagem finalizada)
@@ -133,8 +127,7 @@ export default function DetalheViagemPage() {
       await carregar() // a viagem pode ter sido alterada em outra sessão
       throw err
     }
-    setErroAcao('')
-    setMensagem('Viagem finalizada com sucesso.')
+    notificar.sucesso('Viagem finalizada com sucesso.')
     await carregar() // status, data de finalização e totais vêm do backend
   }
 
@@ -210,23 +203,6 @@ export default function DetalheViagemPage() {
           <AlertCircle size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
           <span className="flex-1 wrap-break-word">{erro} Os dados exibidos podem estar desatualizados.</span>
           <button type="button" onClick={carregar} className="underline shrink-0">Tentar novamente</button>
-        </div>
-      )}
-
-      {mensagem && (
-        <div role="status" className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-          <CheckCircle2 size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
-          <span className="flex-1">{mensagem}</span>
-          <button type="button" onClick={() => setMensagem('')} aria-label="Fechar mensagem" className="p-0.5 rounded hover:bg-green-100">
-            <X size={16} />
-          </button>
-        </div>
-      )}
-
-      {erroAcao && (
-        <div role="alert" className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-          <AlertCircle size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
-          <span className="wrap-break-word">{erroAcao}</span>
         </div>
       )}
 
@@ -306,7 +282,7 @@ export default function DetalheViagemPage() {
           <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm">
             <Info size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
             <span>Esta viagem está finalizada, mas as despesas ainda podem ser adicionadas, editadas e excluídas.</span>
-          </div>  
+          </div>
         )}
 
         {despesas.despesas.length === 0 ? (
@@ -437,8 +413,7 @@ export default function DetalheViagemPage() {
         viagemId={viagem.id}
         ocultarValores={oculto}
         onAssociados={async (qtd) => {
-          setErroAcao('')
-          setMensagem(qtd === 1 ? 'Pedido associado à viagem.' : `${qtd} pedidos associados à viagem.`)
+          notificar.sucesso(qtd === 1 ? 'Pedido associado à viagem.' : `${qtd} pedidos associados à viagem.`)
           await carregar()
         }}
         onViagemAlterada={carregar}

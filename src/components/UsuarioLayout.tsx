@@ -20,6 +20,7 @@ import { logout } from '@/lib/Auth'
 import { getMe } from '@/services/usuarioService'
 import { primeiroEUltimoNome, iniciais } from '@/lib/formatoNome'
 import { Usuario } from '@/types/usuario'
+import NotificacoesViewport from '@/components/NotificacoesViewport'
 import '@/app/globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -66,6 +67,7 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className={inter.className}>
+      <NotificacoesViewport />
       <div className="min-h-screen bg-gray-50">
         {/* Overlay para mobile quando sidebar está aberta */}
         {mobileMenuOpen && (

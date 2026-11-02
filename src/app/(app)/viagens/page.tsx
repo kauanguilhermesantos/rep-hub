@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { AlertCircle, CheckCircle2, MapPin, Plus, RefreshCw, X } from 'lucide-react'
+import { AlertCircle, MapPin, Plus, RefreshCw } from 'lucide-react'
 
 import FiltroPeriodo, { PeriodoSelecionado } from '@/components/Filtroperiodo'
 import BotaoOcultarValores from '@/components/BotaoOcultarValores'
 import ViagemCard from '@/components/ViagemCard'
 import { useOcultarValores } from '@/lib/useOcultarValores'
-import { consumirMensagemViagem, listarViagens, StatusViagem, Viagem } from '@/services/viagensService'
+import { listarViagens, StatusViagem, Viagem } from '@/services/viagensService'
+import { notificar } from '@/services/notificacoesService'
 
 type FiltroStatus = '' | StatusViagem
 
@@ -17,7 +18,6 @@ export default function ViagensPage() {
   const [carregando, setCarregando] = useState(true)   // primeira carga / troca de filtro sem dados
   const [atualizando, setAtualizando] = useState(false) // recarga mantendo a lista na tela
   const [erro, setErro] = useState('')
-  const [sucesso, setSucesso] = useState('')
   const [status, setStatus] = useState<FiltroStatus>('')
   const [periodo, setPeriodo] = useState<PeriodoSelecionado>({})
   const { oculto, alternar } = useOcultarValores()
@@ -40,7 +40,9 @@ export default function ViagensPage() {
     } catch (err) {
       if (id !== requisicaoAtual.current) return
       setViagens([]) // não manter na tela uma lista que pertence a outro filtro
-      setErro(err instanceof Error ? err.message : 'Não foi possível carregar as viagens')
+      const mensagem = err instanceof Error ? err.message : 'Não foi possível carregar as viagens'
+      setErro(mensagem)
+      notificar.erro(mensagem)
     } finally {
       if (id === requisicaoAtual.current) {
         setCarregando(false)
@@ -48,11 +50,6 @@ export default function ViagensPage() {
       }
     }
   }, [status, periodo])
-
-  // Mensagem deixada pelo formulário de cadastro/edição
-  useEffect(() => {
-    setSucesso(consumirMensagemViagem())
-  }, [])
 
   useEffect(() => {
     carregar()
@@ -89,16 +86,6 @@ export default function ViagensPage() {
           </Link>
         </div>
       </div>
-
-      {sucesso && (
-        <div role="status" className="flex items-start gap-2 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
-          <CheckCircle2 size={20} className="shrink-0" aria-hidden="true" />
-          <span className="flex-1 min-w-0">{sucesso}</span>
-          <button type="button" onClick={() => setSucesso('')} aria-label="Fechar mensagem" className="p-0.5 rounded hover:bg-green-100">
-            <X size={16} />
-          </button>
-        </div>
-      )}
 
       {/* Filtros */}
       <div className="space-y-3">
