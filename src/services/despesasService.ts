@@ -1,33 +1,13 @@
 import { authFetch } from "@/lib/Auth"
 import { lancarErroApi } from "@/lib/ApiError"
 
-// Mesmas categorias do enum CategoriaDespesa do backend
-export type CategoriaDespesa =
-  | "ALIMENTACAO"
-  | "HOSPEDAGEM"
-  | "COMBUSTIVEL"
-  | "TRANSPORTE"
-  | "ESTACIONAMENTO"
-  | "OUTROS"
-
-export const CATEGORIAS: { valor: CategoriaDespesa; rotulo: string }[] = [
-  { valor: "ALIMENTACAO", rotulo: "Alimentação" },
-  { valor: "HOSPEDAGEM", rotulo: "Hospedagem" },
-  { valor: "COMBUSTIVEL", rotulo: "Combustível" },
-  { valor: "TRANSPORTE", rotulo: "Transporte" },
-  { valor: "ESTACIONAMENTO", rotulo: "Estacionamento" },
-  { valor: "OUTROS", rotulo: "Outros" },
-]
-
-export function rotuloCategoria(categoria: CategoriaDespesa): string {
-  return CATEGORIAS.find((c) => c.valor === categoria)?.rotulo ?? categoria
-}
-
 // Formato real devolvido pelo backend (DespesaResponse)
 export interface Despesa {
   id: string
   viagemId: string
-  categoria: CategoriaDespesa
+  categoria: string          // id da categoria (padrão ou personalizada)
+  categoriaNome: string      // nome resolvido pelo backend (reflete renomeações)
+  categoriaPadrao: boolean
   descricao: string
   valor: number          // já com 2 casas, vindo do backend
   data: string           // yyyy-MM-dd
@@ -36,15 +16,22 @@ export interface Despesa {
   atualizadoEm: string
 }
 
-// GET /api/viagens/{id}/despesas — os totais vêm prontos do backend
+export interface TotalCategoria {
+  categoria: string
+  categoriaNome: string
+  padrao: boolean
+  total: number
+}
+
+// GET /api/viagens/{id}/despesas — os totais vêm prontos do backend (por categoria: maior primeiro)
 export interface DespesasViagem {
   despesas: Despesa[]
   totalDespesas: number
-  totalPorCategoria: Partial<Record<CategoriaDespesa, number>>
+  totalPorCategoria: TotalCategoria[]
 }
 
 export interface DespesaPayload {
-  categoria: CategoriaDespesa
+  categoria: string // id da categoria
   descricao: string
   valor: number
   data: string // yyyy-MM-dd
