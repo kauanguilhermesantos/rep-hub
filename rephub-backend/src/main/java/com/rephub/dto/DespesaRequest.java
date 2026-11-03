@@ -3,8 +3,6 @@ package com.rephub.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.rephub.models.CategoriaDespesa;
-
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -16,8 +14,10 @@ import lombok.Data;
 @Data
 public class DespesaRequest {
 
-    @NotNull(message = "A categoria é obrigatória")
-    private CategoriaDespesa categoria;
+    // Id de uma categoria padrão (ex.: "COMBUSTIVEL") ou personalizada do próprio usuário
+    @NotBlank(message = "A categoria é obrigatória")
+    @Size(max = 64, message = "Categoria inválida")
+    private String categoria;
 
     @NotBlank(message = "A descrição é obrigatória")
     @Size(max = 200, message = "A descrição deve ter no máximo 200 caracteres")

@@ -29,10 +29,13 @@ public class Despesa {
 
     private String viagemId;
 
-    // Dono (normalizado de propósito: permite consultas por representante sem join)
+    // Dono (denormalizado de propósito: permite consultas por representante sem join)
     private String usuarioId;
 
-    private CategoriaDespesa categoria;
+    // Identificador da categoria: nome de uma categoria padrão (ex.: "COMBUSTIVEL", igual ao que as
+    // despesas antigas já têm gravado) ou o id de uma CategoriaPersonalizada. O nome de exibição NÃO é
+    // guardado aqui: é resolvido na leitura, então renomear uma categoria vale para todas as despesas.
+    private String categoria;
     private String descricao;
 
     // Valor em centavos (ver util.Dinheiro)

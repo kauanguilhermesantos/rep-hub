@@ -16,5 +16,8 @@ public interface DespesaRepository extends MongoRepository<Despesa, String> {
 
     Optional<Despesa> findByIdAndViagemIdAndUsuarioId(String id, String viagemId, String usuarioId);
 
+    // Quantas despesas do usuário usam a categoria (impede excluir categoria em uso)
+    long countByUsuarioIdAndCategoria(String usuarioId, String categoria);
+
     List<Despesa> findByUsuarioIdAndViagemIdIn(String usuarioId, Collection<String> viagemIds);
 }
