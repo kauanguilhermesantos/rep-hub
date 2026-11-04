@@ -98,3 +98,17 @@ export function textoCidadesVisitadas(roteiro?: string[] | null): string | null 
   if (total === 0) return null
   return `${total} ${total === 1 ? "cidade visitada" : "cidades visitadas"}`
 }
+
+// Texto de busca sem acentos, em minúsculas e sem espaços nas pontas ("Pedágio " -> "pedagio")
+export function normalizarBusca(texto: string): string {
+  return texto.normalize("NFD").replace(/\p{M}+/gu, "").trim().toLowerCase()
+}
+
+// Busca pelo nome da viagem: parcial, sem diferenciar maiúsculas/minúsculas nem acentos.
+// Filtra em memória a lista já carregada (o backend não tem busca por nome e o volume por
+// representante é pequeno), então digitar ou trocar a visualização não gera chamadas à API.
+export function filtrarViagensPorNome(viagens: Viagem[], termo: string): Viagem[] {
+  const busca = normalizarBusca(termo)
+  if (!busca) return viagens
+  return viagens.filter((v) => normalizarBusca(v.titulo).includes(busca))
+}

@@ -1,14 +1,17 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { AlertCircle, MapPin, Plus, RefreshCw } from 'lucide-react'
+import { AlertCircle, MapPin, Plus, RefreshCw, Search, SearchX, X } from 'lucide-react'
 
 import FiltroPeriodo, { PeriodoSelecionado } from '@/components/Filtroperiodo'
 import BotaoOcultarValores from '@/components/BotaoOcultarValores'
 import ViagemCard from '@/components/ViagemCard'
+import ViagemTabela from '@/components/ViagemTabela'
+import AlternadorVisualizacao from '@/components/AlternadorVisualizacao'
 import { useOcultarValores } from '@/lib/useOcultarValores'
-import { listarViagens, StatusViagem, Viagem } from '@/services/viagensService'
+import { filtrarViagensPorNome, listarViagens, StatusViagem, Viagem } from '@/services/viagensService'
+import { useVisualizacaoViagens } from '@/lib/useVisualizacaoViagens'
 import { notificar } from '@/services/notificacoesService'
 
 type FiltroStatus = '' | StatusViagem
@@ -20,6 +23,8 @@ export default function ViagensPage() {
   const [erro, setErro] = useState('')
   const [status, setStatus] = useState<FiltroStatus>('')
   const [periodo, setPeriodo] = useState<PeriodoSelecionado>({})
+  const [busca, setBusca] = useState('')
+  const { visualizacao, definir: definirVisualizacao } = useVisualizacaoViagens()
   const { oculto, alternar } = useOcultarValores()
 
   // Evita que uma resposta antiga (filtro anterior) sobrescreva a mais recente
@@ -54,6 +59,11 @@ export default function ViagensPage() {
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  // A busca por nome filtra em memória a lista já carregada: não faz chamadas à API
+  // e vale igualmente para cards e lista (alternar o modo também não recarrega nada)
+  const viagensFiltradas = useMemo(() => filtrarViagensPorNome(viagens, busca), [viagens, busca])
+  const buscando = busca.trim() !== ''
 
   const filtrando = status !== '' || !!periodo.inicio || !!periodo.fim
   const primeiraCargaFalhou = !!erro && viagens.length === 0
@@ -148,13 +158,71 @@ export default function ViagensPage() {
           )}
         </div>
       ) : (
-        <ul className={`grid grid-cols-1 xl:grid-cols-2 gap-4 transition-opacity ${atualizando ? 'opacity-60' : ''}`} aria-busy={atualizando}>
-          {viagens.map((viagem) => (
-            <li key={viagem.id} className="min-w-0">
-              <ViagemCard viagem={viagem} ocultarValores={oculto} />
-            </li>
-          ))}
-        </ul>
+        <>
+          {/* Busca por nome e alternância de visualização */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="relative w-full sm:max-w-md">
+              <label htmlFor="busca-viagem" className="sr-only">Buscar viagem pelo nome</label>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} aria-hidden="true" />
+              <input
+                id="busca-viagem"
+                type="text"
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar viagem pelo nome..."
+                autoComplete="off"
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              />
+              {buscando && (
+                <button
+                  type="button"
+                  onClick={() => setBusca('')}
+                  aria-label="Limpar pesquisa"
+                  title="Limpar pesquisa"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                >
+                  <X size={16} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+            <AlternadorVisualizacao valor={visualizacao} onChange={definirVisualizacao} />
+          </div>
+
+          {buscando && (
+            <p role="status" className="text-sm text-gray-500">
+              {viagensFiltradas.length} de {viagens.length} {viagens.length === 1 ? 'viagem' : 'viagens'}
+            </p>
+          )}
+
+          {viagensFiltradas.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-xl border border-gray-100 px-4">
+              <SearchX className="mx-auto text-gray-300 mb-4" size={48} aria-hidden="true" />
+              <h3 className="text-lg font-medium text-gray-700 mb-2">Nenhuma viagem encontrada</h3>
+              <p className="text-gray-500 wrap-break-word">
+                Nenhuma viagem corresponde a “{busca.trim()}”. Tente outro nome.
+              </p>
+              <button
+                type="button"
+                onClick={() => setBusca('')}
+                className="mt-4 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Limpar pesquisa
+              </button>
+            </div>
+          ) : visualizacao === 'cards' ? (
+            <ul className={`grid grid-cols-1 xl:grid-cols-2 gap-4 transition-opacity ${atualizando ? 'opacity-60' : ''}`} aria-busy={atualizando}>
+              {viagensFiltradas.map((viagem) => (
+                <li key={viagem.id} className="min-w-0">
+                  <ViagemCard viagem={viagem} ocultarValores={oculto} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className={`transition-opacity ${atualizando ? 'opacity-60' : ''}`} aria-busy={atualizando}>
+              <ViagemTabela viagens={viagensFiltradas} ocultarValores={oculto} />
+            </div>
+          )}
+        </>
       )}
     </div>
   )
