@@ -9,6 +9,8 @@ import BotaoOcultarValores from '@/components/BotaoOcultarValores'
 import ViagemCard from '@/components/ViagemCard'
 import ViagemTabela from '@/components/ViagemTabela'
 import AlternadorVisualizacao from '@/components/AlternadorVisualizacao'
+import Paginacao from '@/components/Paginacao'
+import { usePaginacao } from '@/lib/usePaginacao'
 import { useOcultarValores } from '@/lib/useOcultarValores'
 import { filtrarViagensPorNome, listarViagens, StatusViagem, Viagem } from '@/services/viagensService'
 import { useVisualizacaoViagens } from '@/lib/useVisualizacaoViagens'
@@ -64,6 +66,9 @@ export default function ViagensPage() {
   // e vale igualmente para cards e lista (alternar o modo também não recarrega nada)
   const viagensFiltradas = useMemo(() => filtrarViagensPorNome(viagens, busca), [viagens, busca])
   const buscando = busca.trim() !== ''
+
+  // Paginação sobre a lista já filtrada; busca, status ou período novos voltam à página 1
+  const paginacao = usePaginacao(viagensFiltradas, `${busca.trim()}|${status}|${periodo.inicio ?? ''}|${periodo.fim ?? ''}`)
 
   const filtrando = status !== '' || !!periodo.inicio || !!periodo.fim
   const primeiraCargaFalhou = !!erro && viagens.length === 0
@@ -211,7 +216,7 @@ export default function ViagensPage() {
             </div>
           ) : visualizacao === 'cards' ? (
             <ul className={`grid grid-cols-1 xl:grid-cols-2 gap-4 transition-opacity ${atualizando ? 'opacity-60' : ''}`} aria-busy={atualizando}>
-              {viagensFiltradas.map((viagem) => (
+              {paginacao.itensPagina.map((viagem) => (
                 <li key={viagem.id} className="min-w-0">
                   <ViagemCard viagem={viagem} ocultarValores={oculto} />
                 </li>
@@ -219,9 +224,11 @@ export default function ViagensPage() {
             </ul>
           ) : (
             <div className={`transition-opacity ${atualizando ? 'opacity-60' : ''}`} aria-busy={atualizando}>
-              <ViagemTabela viagens={viagensFiltradas} ocultarValores={oculto} />
+              <ViagemTabela viagens={paginacao.itensPagina} ocultarValores={oculto} />
             </div>
           )}
+
+          {viagensFiltradas.length > 0 && <Paginacao paginacao={paginacao} rotulo="viagens" />}
         </>
       )}
     </div>

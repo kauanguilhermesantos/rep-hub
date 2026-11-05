@@ -11,6 +11,8 @@ import MarcaCard, { DeleteModal, EditModal, Marca } from '@/components/MarcaCard
 import { listarMarcas, criarMarca, editarMarca, excluirMarca } from '@/services/marcaService'
 import { ApiError } from '@/lib/ApiError'
 import BotaoOcultarValores from '@/components/BotaoOcultarValores'
+import Paginacao from '@/components/Paginacao'
+import { usePaginacao } from '@/lib/usePaginacao'
 import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
 
 export default function MarcasPage() {
@@ -98,6 +100,10 @@ export default function MarcasPage() {
   const marcasFiltradas = marcas.filter(marca =>
     marca.nome.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  // Paginação sobre a lista já filtrada; nova busca volta à página 1.
+  // (Hook chamado antes dos returns antecipados para manter a ordem dos hooks.)
+  const paginacao = usePaginacao(marcasFiltradas, searchTerm)
 
   if (carregando) {
     return (
@@ -202,17 +208,20 @@ export default function MarcasPage() {
 
       {/* Grid de Marcas */}
       {marcasFiltradas.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-          {marcasFiltradas.map((marca) => (
-            <MarcaCard
-              key={marca.id}
-              marca={marca}
-              onEdit={handleEditMarca}
-              onDelete={handleRequestDelete}
-              oculto={oculto}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            {paginacao.itensPagina.map((marca) => (
+              <MarcaCard
+                key={marca.id}
+                marca={marca}
+                onEdit={handleEditMarca}
+                onDelete={handleRequestDelete}
+                oculto={oculto}
+              />
+            ))}
+          </div>
+          <Paginacao paginacao={paginacao} rotulo="marcas" />
+        </>
       ) : (
         <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
           <Tag className="mx-auto text-gray-300 mb-4" size={48} />

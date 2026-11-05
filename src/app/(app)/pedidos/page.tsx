@@ -22,6 +22,8 @@ import VisualizarPedidoModal from '@/components/VisualizarPedidoModal'
 import BotaoOcultarValores from '@/components/BotaoOcultarValores'
 import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
 import FiltroPeriodo, { PeriodoSelecionado } from '@/components/Filtroperiodo'
+import Paginacao from '@/components/Paginacao'
+import { usePaginacao } from '@/lib/usePaginacao'
 import { listarPedidos, criarPedido, editarPedido, excluirPedido, PedidoFormPayload } from '@/services/pedidoService'
 import { listarMarcas } from '@/services/marcaService'
 
@@ -69,6 +71,7 @@ export default function PedidosPage() {
   const { oculto, alternar } = useOcultarValores()
 
   const [searchTerm, setSearchTerm] = useState('')
+  const [periodoChave, setPeriodoChave] = useState('')
   const [visualizacao, setVisualizacao] = useState<'cards' | 'lista'>('cards')
   const [modalNovoPedidoOpen, setModalNovoPedidoOpen] = useState(false)
   const [modalVisualizarOpen, setModalVisualizarOpen] = useState(false)
@@ -93,6 +96,7 @@ export default function PedidosPage() {
   }, [])
 
   function handlePeriodoChange(periodo: PeriodoSelecionado) {
+    setPeriodoChave(`${periodo.inicio ?? ''}|${periodo.fim ?? ''}`)
     carregarPedidos(periodo.inicio, periodo.fim)
   }
 
@@ -144,6 +148,9 @@ export default function PedidosPage() {
     pedido.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
     pedido.marcaNome.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  // Paginação sobre a lista já filtrada; busca ou período novos voltam à página 1
+  const paginacao = usePaginacao(pedidosFiltrados, `${searchTerm}|${periodoChave}`)
 
   return (
     <div className="space-y-8">
@@ -260,26 +267,29 @@ export default function PedidosPage() {
 
           {/* Lista de Pedidos */}
           {pedidosFiltrados.length > 0 ? (
-            visualizacao === 'cards' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                {pedidosFiltrados.map((pedido) => (
-                  <PedidoCard
-                    key={pedido.id}
-                    pedido={pedido}
-                    onView={handleViewPedido}
-                    onEdit={handleEditPedido}
-                    onDelete={handleDeletePedido}
-                  />
-                ))}
-              </div>
-            ) : (
-              <PedidoTabela
-                pedidos={pedidosFiltrados}
-                onView={handleViewPedido}
-                onEdit={handleEditPedido}
-                onDelete={handleDeletePedido}
-              />
-            )
+            <>
+              {visualizacao === 'cards' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                  {paginacao.itensPagina.map((pedido) => (
+                    <PedidoCard
+                      key={pedido.id}
+                      pedido={pedido}
+                      onView={handleViewPedido}
+                      onEdit={handleEditPedido}
+                      onDelete={handleDeletePedido}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <PedidoTabela
+                  pedidos={paginacao.itensPagina}
+                  onView={handleViewPedido}
+                  onEdit={handleEditPedido}
+                  onDelete={handleDeletePedido}
+                />
+              )}
+              <Paginacao paginacao={paginacao} rotulo="pedidos" />
+            </>
           ) : (
             <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
               <Package className="mx-auto text-gray-300 mb-4" size={48} />
