@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Eye, Edit2 } from 'lucide-react'
 import StatusViagemBadge from '@/components/StatusViagemBadge'
-import { contarCidades, Viagem } from '@/services/viagensService'
+import { contarCidades, situacaoResultado, Viagem } from '@/services/viagensService'
 import { formatarDataHora, formatarDataIso } from '@/lib/formatoHora'
 import { formatarMoeda } from '@/lib/formatoMoeda'
 import { VALOR_OCULTO } from '@/lib/useOcultarValores'
@@ -21,7 +21,7 @@ export default function ViagemTabela({ viagens, ocultarValores = false }: Viagem
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="overflow-x-auto overscroll-x-contain">
-        <table className="w-full min-w-4xl">
+        <table className="w-full min-w-280">
           <caption className="sr-only">Lista de viagens</caption>
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
@@ -30,7 +30,9 @@ export default function ViagemTabela({ viagens, ocultarValores = false }: Viagem
               <th scope="col" className={`text-left ${TH}`}>Início</th>
               <th scope="col" className={`text-left ${TH}`}>Finalização</th>
               <th scope="col" className={`text-right ${TH}`}>Cidades</th>
+              <th scope="col" className={`text-right ${TH}`}>Vendas</th>
               <th scope="col" className={`text-right ${TH}`}>Despesas</th>
+              <th scope="col" className={`text-right ${TH}`}>Resultado</th>
               <th scope="col" className={`text-right ${TH}`}>Pedidos</th>
               <th scope="col" className={`text-center ${TH}`}>Ações</th>
             </tr>
@@ -63,10 +65,26 @@ export default function ViagemTabela({ viagens, ocultarValores = false }: Viagem
                     {cidades > 0 ? cidades : <span aria-label="Nenhuma cidade">—</span>}
                   </td>
                   <td
-                    className={`${TD} text-right text-gray-800 font-medium`}
+                    className={`${TD} text-right text-gray-800`}
+                    aria-label={ocultarValores ? 'Valor oculto' : undefined}
+                  >
+                    {ocultarValores ? VALOR_OCULTO : formatarMoeda(viagem.totalVendas ?? 0)}
+                  </td>
+                  <td
+                    className={`${TD} text-right text-gray-800`}
                     aria-label={ocultarValores ? 'Valor oculto' : undefined}
                   >
                     {ocultarValores ? VALOR_OCULTO : formatarMoeda(viagem.totalDespesas ?? 0)}
+                  </td>
+                  <td
+                    className={`${TD} text-right font-semibold ${
+                      ocultarValores ? 'text-gray-800'
+                        : situacaoResultado(viagem.resultadoFinanceiro) === 'positivo' ? 'text-green-700'
+                        : situacaoResultado(viagem.resultadoFinanceiro) === 'negativo' ? 'text-red-700' : 'text-gray-700'
+                    }`}
+                    aria-label={ocultarValores ? 'Valor oculto' : undefined}
+                  >
+                    {ocultarValores ? VALOR_OCULTO : formatarMoeda(viagem.resultadoFinanceiro ?? 0)}
                   </td>
                   <td className={`${TD} text-right text-gray-600`}>{viagem.quantidadePedidos ?? 0}</td>
                   <td className={TD}>

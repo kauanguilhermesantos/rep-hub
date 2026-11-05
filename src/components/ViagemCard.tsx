@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { CalendarDays, Pencil, CalendarCheck, MapPin, ShoppingBag, Wallet } from 'lucide-react'
+import { CalendarDays, Pencil, CalendarCheck, MapPin, ShoppingBag, Wallet, TrendingUp } from 'lucide-react'
 import StatusViagemBadge from '@/components/StatusViagemBadge'
-import { textoCidadesVisitadas, Viagem } from '@/services/viagensService'
+import { situacaoResultado, textoCidadesVisitadas, Viagem } from '@/services/viagensService'
 import { formatarDataHora, formatarDataIso } from '@/lib/formatoHora'
 import { formatarMoeda } from '@/lib/formatoMoeda'
 import { VALOR_OCULTO } from '@/lib/useOcultarValores'
@@ -14,6 +14,9 @@ interface ViagemCardProps {
 export default function ViagemCard({ viagem, ocultarValores = false }: ViagemCardProps) {
   const cidadesVisitadas = textoCidadesVisitadas(viagem.roteiro)
   const finalizada = viagem.status === 'FINALIZADA'
+  const situacao = situacaoResultado(viagem.resultadoFinanceiro)
+  const corResultado = ocultarValores ? 'text-gray-800'
+    : situacao === 'positivo' ? 'text-green-700' : situacao === 'negativo' ? 'text-red-700' : 'text-gray-700'
 
   return (
     <article className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 min-w-0 flex flex-col gap-4">
@@ -57,6 +60,32 @@ export default function ViagemCard({ viagem, ocultarValores = false }: ViagemCar
               aria-label={ocultarValores ? 'Valor oculto' : undefined}
             >
               {ocultarValores ? VALOR_OCULTO : formatarMoeda(viagem.totalDespesas ?? 0)}
+            </dd>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 min-w-0">
+          <ShoppingBag size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
+          <div className="min-w-0">
+            <dt className="text-gray-500">Total de vendas</dt>
+            <dd
+              className="font-medium text-gray-800 wrap-break-word"
+              aria-label={ocultarValores ? 'Valor oculto' : undefined}
+            >
+              {ocultarValores ? VALOR_OCULTO : formatarMoeda(viagem.totalVendas ?? 0)}
+            </dd>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 min-w-0">
+          <TrendingUp size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
+          <div className="min-w-0">
+            <dt className="text-gray-500">Resultado financeiro</dt>
+            <dd
+              className={`font-semibold wrap-break-word ${corResultado}`}
+              aria-label={ocultarValores ? 'Valor oculto' : undefined}
+            >
+              {ocultarValores ? VALOR_OCULTO : formatarMoeda(viagem.resultadoFinanceiro ?? 0)}
             </dd>
           </div>
         </div>

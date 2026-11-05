@@ -24,12 +24,22 @@ public class ViagemResponse {
     private String observacoes;
     private StatusViagem status;
     private BigDecimal totalDespesas;
+    // Indicadores financeiros: sempre calculados na consulta, nunca gravados na viagem
+    private BigDecimal totalVendas;          // soma do valorTotal dos pedidos associados
+    private BigDecimal resultadoFinanceiro;  // totalVendas - totalDespesas (saldo simplificado, não é lucro líquido)
     private int quantidadeDespesas;
     private int quantidadePedidos;
     private LocalDateTime criadoEm;
     private LocalDateTime atualizadoEm;
 
     public static ViagemResponse of(Viagem v, long totalDespesasCentavos, int quantidadeDespesas, int quantidadePedidos) {
+        return of(v, totalDespesasCentavos, quantidadeDespesas, quantidadePedidos, BigDecimal.ZERO);
+    }
+
+    public static ViagemResponse of(Viagem v, long totalDespesasCentavos, int quantidadeDespesas, int quantidadePedidos,
+                                    BigDecimal totalVendas) {
+        BigDecimal despesas = Dinheiro.deCentavos(totalDespesasCentavos);
+        BigDecimal vendas = (totalVendas == null ? BigDecimal.ZERO : totalVendas).setScale(2);
         return ViagemResponse.builder()
                 .id(v.getId())
                 .titulo(v.getTitulo())
@@ -38,7 +48,9 @@ public class ViagemResponse {
                 .dataFinalizacao(v.getDataFinalizacao())
                 .observacoes(v.getObservacoes())
                 .status(v.getStatus())
-                .totalDespesas(Dinheiro.deCentavos(totalDespesasCentavos))
+                .totalDespesas(despesas)
+                .totalVendas(vendas)
+                .resultadoFinanceiro(vendas.subtract(despesas))
                 .quantidadeDespesas(quantidadeDespesas)
                 .quantidadePedidos(quantidadePedidos)
                 .criadoEm(v.getCriadoEm())

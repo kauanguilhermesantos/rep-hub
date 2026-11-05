@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 
 import ResumoCard from '@/components/ResumoCard'
+import ResultadoFinanceiroCard from '@/components/ResultadoFinanceiroCard'
 import StatusViagemBadge from '@/components/StatusViagemBadge'
 import BotaoOcultarValores from '@/components/BotaoOcultarValores'
 import DespesaModal from '@/components/DespesaModal'
@@ -17,12 +18,13 @@ import FinalizarViagemModal from '@/components/FinalizarViagemModal'
 import CategoriasModal from '@/components/CategoriasModal'
 import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
 import { buscarViagem, finalizarViagem, Viagem } from '@/services/viagensService'
-import { listarPedidosDaViagem, PedidosDaViagem, removerPedidoDaViagem, PedidoDaViagem } from '@/services/viagemPedidosService'
+import { listarPedidosDaViagem, PedidosDaViagem, removerPedidoDaViagem } from '@/services/viagemPedidosService'
 import {
   atualizarDespesa, criarDespesa, DespesaPayload, Despesa, DespesasViagem,
   excluirDespesa, listarDespesas,
 } from '@/services/despesasService'
 import { notificar } from '@/services/notificacoesService'
+import { PedidoDaViagem } from '@/services/viagemPedidosService'
 import { formatarData, formatarDataHora, formatarDataIso } from '@/lib/formatoHora'
 import { formatarMoeda } from '@/lib/formatoMoeda'
 
@@ -245,9 +247,23 @@ export default function DetalheViagemPage() {
         </dl>
       </section>
 
-      {/* Resumo financeiro (valores vindos do backend) */}
-      <section aria-label="Resumo financeiro" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <ResumoCard title="Total de despesas" value={formatarMoeda(despesas.totalDespesas)} icon={Wallet} color="red" oculto={oculto} />
+      {/* Indicadores financeiros: todos calculados e devolvidos pelo backend */}
+      <section aria-label="Indicadores financeiros" className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <ResumoCard title="Total de vendas" value={formatarMoeda(viagem.totalVendas ?? 0)} icon={ShoppingBag} color="green" oculto={oculto} />
+          <ResumoCard title="Total de despesas" value={formatarMoeda(viagem.totalDespesas ?? despesas.totalDespesas)} icon={Wallet} color="red" oculto={oculto} />
+          <ResultadoFinanceiroCard resultado={viagem.resultadoFinanceiro ?? 0} oculto={oculto} />
+        </div>
+        <p className="flex items-start gap-1.5 text-xs text-gray-500">
+          <Info size={14} className="shrink-0 mt-0.5" aria-hidden="true" />
+          <span>
+            O resultado financeiro é a diferença entre vendas e despesas registradas na viagem. Não é o lucro líquido:
+            não considera custo de mercadorias, impostos, comissões ou outros custos que não estejam no sistema.
+          </span>
+        </p>
+      </section>
+
+      <section aria-label="Resumo da viagem" className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <ResumoCard title="Despesas registradas" value={String(despesas.despesas.length)} icon={Wallet} color="gray" oculto={oculto} />
         <ResumoCard title="Pedidos associados" value={String(viagem.quantidadePedidos ?? 0)} icon={ShoppingBag} color="blue" oculto={oculto} />
       </section>

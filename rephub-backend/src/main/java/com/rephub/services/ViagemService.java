@@ -113,8 +113,11 @@ public class ViagemService {
         Map<String, List<Despesa>> despesas = despesaRepository.findByUsuarioIdAndViagemIdIn(usuarioId, ids)
                 .stream().collect(Collectors.groupingBy(Despesa::getViagemId));
 
+        // Idem para os pedidos: uma consulta para todas as viagens da listagem
+        Map<String, Pedido> pedidos = carregarPedidos(usuarioId, viagens);
+
         return viagens.stream()
-                .map(v -> resposta(v, despesas.getOrDefault(v.getId(), List.of())))
+                .map(v -> resposta(v, despesas.getOrDefault(v.getId(), List.of()), pedidos))
                 .collect(Collectors.toList());
     }
 
@@ -348,13 +351,51 @@ public class ViagemService {
     private ViagemResponse paraResposta(Viagem viagem) {
         List<Despesa> despesas = despesaRepository
                 .findByViagemIdAndUsuarioIdOrderByDataDescCriadoEmDesc(viagem.getId(), viagem.getUsuarioId());
-        return resposta(viagem, despesas);
+        return resposta(viagem, despesas, carregarPedidos(viagem.getUsuarioId(), List.of(viagem)));
     }
 
-    private ViagemResponse resposta(Viagem viagem, List<Despesa> despesas) {
+    private ViagemResponse resposta(Viagem viagem, List<Despesa> despesas, Map<String, Pedido> pedidos) {
         long total = despesas.stream().mapToLong(Despesa::getValorCentavos).sum();
-        int pedidos = viagem.getPedidoIds() != null ? viagem.getPedidoIds().size() : 0;
-        return ViagemResponse.of(viagem, total, despesas.size(), pedidos);
+        int quantidade = viagem.getPedidoIds() != null ? viagem.getPedidoIds().size() : 0;
+        return ViagemResponse.of(viagem, total, despesas.size(), quantidade, somarVendas(viagem.getPedidoIds(), pedidos));
+    }
+
+    /**
+     * Pedidos referenciados pelas viagens, relidos do banco a cada consulta (por isso uma alteração de
+     * valor, associação ou remoção aparece na hora). Só entram pedidos que existem e são do dono.
+     */
+    private Map<String, Pedido> carregarPedidos(String usuarioId, List<Viagem> viagens) {
+        Set<String> ids = new HashSet<>();
+        for (Viagem v : viagens) {
+            if (v.getPedidoIds() != null) {
+                ids.addAll(v.getPedidoIds());
+            }
+        }
+        Map<String, Pedido> mapa = new java.util.HashMap<>();
+        if (ids.isEmpty()) {
+            return mapa;
+        }
+        pedidoRepository.findAllById(ids).forEach(p -> {
+            if (pertenceAoUsuario(p, usuarioId)) {
+                mapa.put(p.getId(), p);
+            }
+        });
+        return mapa;
+    }
+
+    /** Soma o valorTotal dos pedidos da viagem. Ids repetidos contam uma vez; ids sem pedido valem zero. */
+    static BigDecimal somarVendas(List<String> pedidoIds, Map<String, Pedido> pedidos) {
+        BigDecimal soma = BigDecimal.ZERO.setScale(2);
+        if (pedidoIds == null) {
+            return soma;
+        }
+        for (String id : new LinkedHashSet<>(pedidoIds)) {
+            Pedido p = pedidos.get(id);
+            if (p != null) {
+                soma = soma.add(Dinheiro.deDouble(p.getValorTotal()));
+            }
+        }
+        return soma;
     }
 
     private List<String> normalizarRoteiro(List<String> roteiro) {

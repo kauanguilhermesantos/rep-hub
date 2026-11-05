@@ -13,6 +13,8 @@ export interface Viagem {
   observacoes: string | null
   status: StatusViagem
   totalDespesas: number          // calculado pelo backend a partir das despesas
+  totalVendas: number            // soma do valorTotal dos pedidos associados (calculado pelo backend)
+  resultadoFinanceiro: number    // totalVendas - totalDespesas; saldo simplificado, não é lucro líquido
   quantidadeDespesas: number
   quantidadePedidos: number
   criadoEm: string
@@ -111,4 +113,14 @@ export function filtrarViagensPorNome(viagens: Viagem[], termo: string): Viagem[
   const busca = normalizarBusca(termo)
   if (!busca) return viagens
   return viagens.filter((v) => normalizarBusca(v.titulo).includes(busca))
+}
+
+export type SituacaoResultado = "positivo" | "negativo" | "zerado"
+
+// Só classifica o valor que o backend já calculou (nenhuma conta financeira é refeita no frontend)
+export function situacaoResultado(resultado?: number | null): SituacaoResultado {
+  const valor = resultado ?? 0
+  if (valor > 0) return "positivo"
+  if (valor < 0) return "negativo"
+  return "zerado"
 }
