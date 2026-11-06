@@ -16,6 +16,8 @@ import DespesaModal from '@/components/DespesaModal'
 import AssociarPedidosModal from '@/components/AssociarPedidosModal'
 import FinalizarViagemModal from '@/components/FinalizarViagemModal'
 import CategoriasModal from '@/components/CategoriasModal'
+import Paginacao from '@/components/Paginacao'
+import { usePaginacao } from '@/lib/usePaginacao'
 import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
 import { buscarViagem, finalizarViagem, Viagem } from '@/services/viagensService'
 import { listarPedidosDaViagem, PedidosDaViagem, removerPedidoDaViagem } from '@/services/viagemPedidosService'
@@ -27,6 +29,11 @@ import { notificar } from '@/services/notificacoesService'
 import { PedidoDaViagem } from '@/services/viagemPedidosService'
 import { formatarData, formatarDataHora, formatarDataIso } from '@/lib/formatoHora'
 import { formatarMoeda } from '@/lib/formatoMoeda'
+
+// Nesta página, despesas e pedidos associados são paginados de 5 em 5
+const ITENS_POR_PAGINA = 5
+const SEM_DESPESAS: Despesa[] = []
+const SEM_PEDIDOS: PedidoDaViagem[] = []
 
 export default function DetalheViagemPage() {
   const params = useParams<{ id: string }>()
@@ -73,6 +80,11 @@ export default function DetalheViagemPage() {
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  // Paginação de 5 em 5 (hooks antes dos returns antecipados). Os totais continuam vindo
+  // do backend sobre TODOS os registros; se a lista encolher, a página é ajustada sozinha.
+  const paginacaoDespesas = usePaginacao(despesas?.despesas ?? SEM_DESPESAS, '', ITENS_POR_PAGINA)
+  const paginacaoPedidos = usePaginacao(pedidos?.pedidos ?? SEM_PEDIDOS, '', ITENS_POR_PAGINA)
 
   function abrirNova() {
     setEmEdicao(null)
@@ -318,8 +330,9 @@ export default function DetalheViagemPage() {
             <p className="text-sm text-gray-500 mt-1">Use “Adicionar despesa” para registrar o primeiro gasto.</p>
           </div>
         ) : (
+          <>
           <ul className={`space-y-3 transition-opacity ${atualizando ? 'opacity-60' : ''}`} aria-busy={atualizando}>
-            {despesas.despesas.map((d) => (
+            {paginacaoDespesas.itensPagina.map((d) => (
               <li key={d.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <div className="flex-1 min-w-0">
@@ -361,6 +374,8 @@ export default function DetalheViagemPage() {
               </li>
             ))}
           </ul>
+          <Paginacao paginacao={paginacaoDespesas} rotulo="despesas" />
+          </>
         )}
       </section>
 
@@ -400,8 +415,9 @@ export default function DetalheViagemPage() {
             {!finalizada && <p className="text-sm text-gray-500 mt-1">Use “Adicionar pedidos” para vincular pedidos já cadastrados.</p>}
           </div>
         ) : (
+          <>
           <ul className={`space-y-3 transition-opacity ${atualizando ? 'opacity-60' : ''}`} aria-busy={atualizando}>
-            {pedidos.pedidos.map((p) => (
+            {paginacaoPedidos.itensPagina.map((p) => (
               <li key={p.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <div className="flex-1 min-w-0">
@@ -430,6 +446,8 @@ export default function DetalheViagemPage() {
               </li>
             ))}
           </ul>
+          <Paginacao paginacao={paginacaoPedidos} rotulo="pedidos" />
+          </>
         )}
       </section>
 
