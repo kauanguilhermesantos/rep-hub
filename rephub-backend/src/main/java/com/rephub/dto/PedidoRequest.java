@@ -1,14 +1,8 @@
 package com.rephub.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+
 import java.time.LocalDate;
 import lombok.Data;
 
@@ -34,6 +28,7 @@ public class PedidoRequest {
     @NotNull(message = "A comissão é obrigatória")
     @DecimalMin(value = "0.0", message = "A comissão não pode ser negativa")
     @DecimalMax(value = "100.0", message = "A comissão não pode passar de 100%")
+    @Digits(integer = 3, fraction = 2, message = "A comissão deve ter no máximo duas casas decimais")
     private Double comissaoPercentual;
 
     @NotNull(message = "O valor da comissão é obrigatório")
