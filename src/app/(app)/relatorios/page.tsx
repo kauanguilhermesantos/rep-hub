@@ -17,11 +17,20 @@ import FiltroPeriodo, { PeriodoSelecionado } from '@/components/Filtroperiodo'
 import { buscarRelatorio } from '@/services/relatorioService'
 
 // Componente de Card de Resumo
-const SummaryCard = ({ title, value, icon: Icon, color, trend, oculto = false }: any) => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-md transition-all min-w-0">
-    <div className="flex items-center justify-between mb-3">
-      <div className={`p-3 rounded-lg bg-${color}-50`}>
-        <Icon className={`text-${color}-600`} size={24} />
+const CORES_RESUMO = {
+  blue: { fundo: 'bg-blue-50', icone: 'text-blue-600' },
+  green: { fundo: 'bg-green-50', icone: 'text-green-600' },
+  yellow: { fundo: 'bg-yellow-50', icone: 'text-yellow-600' },
+  purple: { fundo: 'bg-purple-50', icone: 'text-purple-600' },
+} as const
+
+const SummaryCard = ({ title, value, icon: Icon, color, trend, oculto = false }: any) => {
+  const cor = CORES_RESUMO[color as keyof typeof CORES_RESUMO] ?? CORES_RESUMO.blue
+  return (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-6 hover:shadow-md transition-all min-w-0">
+    <div className="flex items-center justify-between mb-2 sm:mb-3">
+      <div className={`p-2 sm:p-3 rounded-lg ${cor.fundo}`}>
+        <Icon className={`${cor.icone} size-5 sm:size-6`} aria-hidden="true" />
       </div>
       {trend && (
         <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
@@ -29,12 +38,13 @@ const SummaryCard = ({ title, value, icon: Icon, color, trend, oculto = false }:
         </span>
       )}
     </div>
-    <p className="text-sm text-gray-500 mb-1">{title}</p>
-    <p className="text-xl sm:text-2xl font-bold text-gray-800 wrap-break-word" aria-label={oculto ? 'Valor oculto' : undefined}>
+    <p className="text-xs sm:text-sm text-gray-500 mb-0.5 sm:mb-1 leading-tight">{title}</p>
+    <p className="text-base min-[400px]:text-lg sm:text-2xl font-bold text-gray-800 wrap-break-word leading-tight" aria-label={oculto ? 'Valor oculto' : undefined}>
       {oculto ? VALOR_OCULTO : value}
     </p>
   </div>
-)
+  )
+}
 
 export default function RelatoriosPage() {
   const [marcaSelecionada, setMarcaSelecionada] = useState('todas')
@@ -125,7 +135,7 @@ export default function RelatoriosPage() {
       ) : dados && (
         <>
           {/* Cards de Resumo */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             <SummaryCard
               oculto={oculto}
               title="Total de Pedidos" 
