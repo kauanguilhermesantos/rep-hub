@@ -22,6 +22,8 @@ import VisualizarPedidoModal from '@/components/VisualizarPedidoModal'
 import BotaoOcultarValores from '@/components/BotaoOcultarValores'
 import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
 import FiltroPeriodo, { PeriodoSelecionado } from '@/components/Filtroperiodo'
+import Paginacao from '@/components/Paginacao'
+import { usePaginacao } from '@/lib/usePaginacao'
 import { listarPedidos, criarPedido, editarPedido, excluirPedido, PedidoFormPayload } from '@/services/pedidoService'
 import { listarMarcas } from '@/services/marcaService'
 
@@ -46,29 +48,19 @@ export interface Pedido {
 }
 
 // Componente de Card de Resumo
-const CORES_RESUMO = {
-  blue: { fundo: 'bg-blue-50', icone: 'text-blue-600' },
-  green: { fundo: 'bg-green-50', icone: 'text-green-600' },
-  yellow: { fundo: 'bg-yellow-50', icone: 'text-yellow-600' },
-  purple: { fundo: 'bg-purple-50', icone: 'text-purple-600' },
-} as const
-
-const SummaryCard = ({ title, value, icon: Icon, color, oculto = false }: any) => {
-  const cor = CORES_RESUMO[color as keyof typeof CORES_RESUMO] ?? CORES_RESUMO.blue
-  return (
-    <div className="bg-white rounded-xl shadow-sm p-3 sm:p-6 border border-gray-100 min-w-0">
-      <div className="flex items-center justify-between mb-2 sm:mb-3">
-        <div className={`p-2 sm:p-3 rounded-lg ${cor.fundo}`}>
-          <Icon className={`${cor.icone} size-5 sm:size-6`} aria-hidden="true" />
-        </div>
+const SummaryCard = ({ title, value, icon: Icon, color, oculto = false }: any) => (
+  <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 min-w-0">
+    <div className="flex items-center justify-between mb-3">
+      <div className={`p-3 rounded-lg bg-${color}-50`}>
+        <Icon className={`text-${color}-600`} size={24} />
       </div>
-      <p className="text-xs sm:text-sm text-gray-500 mb-0.5 sm:mb-1 leading-tight">{title}</p>
-      <p className="text-base min-[400px]:text-lg sm:text-2xl font-bold text-gray-800 wrap-break-word leading-tight" aria-label={oculto ? 'Valor oculto' : undefined}>
-        {oculto ? VALOR_OCULTO : value}
-      </p>
     </div>
-  )
-}
+    <p className="text-sm text-gray-500 mb-1">{title}</p>
+    <p className="text-xl sm:text-2xl font-bold text-gray-800 wrap-break-word" aria-label={oculto ? 'Valor oculto' : undefined}>
+      {oculto ? VALOR_OCULTO : value}
+    </p>
+  </div>
+)
 
 export default function PedidosPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
@@ -79,6 +71,7 @@ export default function PedidosPage() {
   const { oculto, alternar } = useOcultarValores()
 
   const [searchTerm, setSearchTerm] = useState('')
+  const [periodoChave, setPeriodoChave] = useState('')
   const [visualizacao, setVisualizacao] = useState<'cards' | 'lista'>('cards')
   const [modalNovoPedidoOpen, setModalNovoPedidoOpen] = useState(false)
   const [modalVisualizarOpen, setModalVisualizarOpen] = useState(false)
@@ -103,6 +96,7 @@ export default function PedidosPage() {
   }, [])
 
   function handlePeriodoChange(periodo: PeriodoSelecionado) {
+    setPeriodoChave(`${periodo.inicio ?? ''}|${periodo.fim ?? ''}`)
     carregarPedidos(periodo.inicio, periodo.fim)
   }
 
@@ -155,6 +149,9 @@ export default function PedidosPage() {
     pedido.marcaNome.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  // Paginação sobre a lista já filtrada; busca ou período novos voltam à página 1
+  const paginacao = usePaginacao(pedidosFiltrados, `${searchTerm}|${periodoChave}`)
+
   return (
     <div className="space-y-8">
       {/* Cabeçalho */}
@@ -202,7 +199,7 @@ export default function PedidosPage() {
       ) : !erroCarregamento && (
         <>
           {/* Cards de Resumo */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <SummaryCard
               oculto={oculto}
               title="Total de Pedidos"
@@ -270,26 +267,29 @@ export default function PedidosPage() {
 
           {/* Lista de Pedidos */}
           {pedidosFiltrados.length > 0 ? (
-            visualizacao === 'cards' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                {pedidosFiltrados.map((pedido) => (
-                  <PedidoCard
-                    key={pedido.id}
-                    pedido={pedido}
-                    onView={handleViewPedido}
-                    onEdit={handleEditPedido}
-                    onDelete={handleDeletePedido}
-                  />
-                ))}
-              </div>
-            ) : (
-              <PedidoTabela
-                pedidos={pedidosFiltrados}
-                onView={handleViewPedido}
-                onEdit={handleEditPedido}
-                onDelete={handleDeletePedido}
-              />
-            )
+            <>
+              {visualizacao === 'cards' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                  {paginacao.itensPagina.map((pedido) => (
+                    <PedidoCard
+                      key={pedido.id}
+                      pedido={pedido}
+                      onView={handleViewPedido}
+                      onEdit={handleEditPedido}
+                      onDelete={handleDeletePedido}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <PedidoTabela
+                  pedidos={paginacao.itensPagina}
+                  onView={handleViewPedido}
+                  onEdit={handleEditPedido}
+                  onDelete={handleDeletePedido}
+                />
+              )}
+              <Paginacao paginacao={paginacao} rotulo="pedidos" />
+            </>
           ) : (
             <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
               <Package className="mx-auto text-gray-300 mb-4" size={48} />
