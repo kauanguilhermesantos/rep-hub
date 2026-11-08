@@ -3,12 +3,15 @@ package com.rephub.models;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
 
 @Data
 @Document(collection = "pedidos")
+// Atende a listagem paginada: filtra por dono + período e ordena por data (mais recente primeiro)
+@CompoundIndex(name = "idx_pedido_usuario_data", def = "{'usuario._id': 1, 'dataCadastro': -1}")
 public class Pedido {
     @Id
     private String id;

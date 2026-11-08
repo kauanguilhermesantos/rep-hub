@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rephub.dto.PaginaPedidosResponse;
 import com.rephub.dto.PedidoRequest;
 import com.rephub.models.Marca;
 import com.rephub.models.Pedido;
@@ -37,18 +38,24 @@ public class PedidoController {
     private final PedidoService pedidoService;
     private final UsuarioService usuarioService;
 
+    // GET /api/pedidos?page=0&size=10&busca=...&inicio=yyyy-MM-dd&fim=yyyy-MM-dd
+    // page é base 0 e size é limitado a 10 pelo service.
     @GetMapping
-    public ResponseEntity<List<Pedido>> getAllPedidos(
+    public ResponseEntity<PaginaPedidosResponse> getAllPedidos(
             Authentication authentication,
             @RequestParam(required = false) String inicio,
-            @RequestParam(required = false) String fim
+            @RequestParam(required = false) String fim,
+            @RequestParam(required = false) String busca,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
         Usuario usuarioLogado = usuarioService.findByEmail(authentication.getName());
 
         LocalDateTime dataInicio = inicio != null ? LocalDate.parse(inicio).atStartOfDay() : null;
         LocalDateTime dataFim = fim != null ? LocalDate.parse(fim).atTime(LocalTime.MAX) : null;
 
-        return ResponseEntity.ok(pedidoService.getPedidosDoUsuario(usuarioLogado.getId(), dataInicio, dataFim));
+        return ResponseEntity.ok(
+                pedidoService.listarPagina(usuarioLogado.getId(), dataInicio, dataFim, busca, page, size));
     }
 
     @GetMapping("/recentes")
