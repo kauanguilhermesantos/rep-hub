@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Package,
   ShoppingBag,
@@ -23,8 +23,8 @@ import BotaoOcultarValores from '@/components/BotaoOcultarValores'
 import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
 import FiltroPeriodo, { PeriodoSelecionado } from '@/components/Filtroperiodo'
 import Paginacao from '@/components/Paginacao'
-import { usePaginacao } from '@/lib/usePaginacao'
-import { listarPedidos, criarPedido, editarPedido, excluirPedido, PedidoFormPayload } from '@/services/pedidoService'
+import { paginacaoRemota } from '@/lib/usePaginacao'
+import { listarPedidos, criarPedido, editarPedido, excluirPedido, PedidoFormPayload, ResumoPedidos } from '@/services/pedidoService'
 import { listarMarcas } from '@/services/marcaService'
 
 export interface Pedido {
@@ -62,59 +62,102 @@ const SummaryCard = ({ title, value, icon: Icon, color, oculto = false }: any) =
   </div>
 )
 
+// O que define a consulta à API. Mudar busca ou período volta para a página 1;
+// `recarga` força nova requisição da mesma consulta (após criar/editar/excluir).
+interface Consulta {
+  pagina: number
+  busca: string
+  inicio?: string
+  fim?: string
+  recarga: number
+}
+
+const RESUMO_VAZIO: ResumoPedidos = { totalPedidos: 0, totalPares: 0, valorTotalVendas: 0, valorTotalComissao: 0 }
+const ATRASO_BUSCA_MS = 400
+
 export default function PedidosPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [marcas, setMarcas] = useState<Marca[]>([])
-  const [carregando, setCarregando] = useState(true)
+  const [carregando, setCarregando] = useState(true)   // primeira carga
+  const [atualizando, setAtualizando] = useState(false) // troca de página/filtro mantendo a tela
+  const [consulta, setConsulta] = useState<Consulta>({ pagina: 1, busca: '', recarga: 0 })
+  const [paginaExibida, setPaginaExibida] = useState(1) // página dos registros que estão na tela
+  const [totalItens, setTotalItens] = useState(0)
+  const [resumo, setResumo] = useState<ResumoPedidos>(RESUMO_VAZIO)
+  const requisicaoAtual = useRef(0) // descarta respostas antigas
   const [erroCarregamento, setErroCarregamento] = useState('')
   const [mensagem, setMensagem] = useState('')
   const { oculto, alternar } = useOcultarValores()
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [periodoChave, setPeriodoChave] = useState('')
+  const [searchTerm, setSearchTerm] = useState('') // texto digitado; vira `consulta.busca` após uma pausa
   const [visualizacao, setVisualizacao] = useState<'cards' | 'lista'>('cards')
   const [modalNovoPedidoOpen, setModalNovoPedidoOpen] = useState(false)
   const [modalVisualizarOpen, setModalVisualizarOpen] = useState(false)
   const [modalEditarOpen, setModalEditarOpen] = useState(false)
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null)
 
-  function carregarPedidos(inicio?: string, fim?: string) {
-    setCarregando(true)
-    setErroCarregamento('')
-    listarPedidos(inicio, fim)
-      .then(setPedidos)
-      .catch(() => setErroCarregamento('Não foi possível carregar os pedidos. Tente recarregar a página.'))
-      .finally(() => setCarregando(false))
-  }
-
-  // Carrega pedidos e marcas reais do backend ao abrir a página
+  // Uma requisição por consulta: só a página pedida é buscada na API
   useEffect(() => {
-    carregarPedidos()
+    const id = ++requisicaoAtual.current
+    setErroCarregamento('')
+    setAtualizando(true)
+    listarPedidos({ pagina: consulta.pagina, inicio: consulta.inicio, fim: consulta.fim, busca: consulta.busca })
+      .then((resposta) => {
+        if (id !== requisicaoAtual.current) return
+        // Página sumiu (ex.: excluiu o último pedido da última página): vai para a última existente
+        if (resposta.pedidos.length === 0 && resposta.pagina > 1 && resposta.totalPaginas > 0) {
+          setConsulta((c) => ({ ...c, pagina: resposta.totalPaginas }))
+          return
+        }
+        setPedidos(resposta.pedidos)
+        setPaginaExibida(resposta.pagina)
+        setTotalItens(resposta.totalItens)
+        setResumo(resposta.resumo)
+        setCarregando(false)
+        setAtualizando(false)
+      })
+      .catch(() => {
+        if (id !== requisicaoAtual.current) return
+        setErroCarregamento('Não foi possível carregar os pedidos. Tente recarregar a página.')
+        setCarregando(false)
+        setAtualizando(false)
+      })
+  }, [consulta])
+
+  // Carrega as marcas (usadas nos formulários) ao abrir a página
+  useEffect(() => {
     listarMarcas()
       .then(setMarcas)
       .catch(() => mostrarErro('Não foi possível carregar as marcas'))
   }, [])
 
+  // Pesquisa: espera o usuário parar de digitar e volta para a página 1
+  useEffect(() => {
+    const termo = searchTerm.trim()
+    if (termo === consulta.busca) return
+    const timer = setTimeout(() => setConsulta((c) => ({ ...c, busca: termo, pagina: 1 })), ATRASO_BUSCA_MS)
+    return () => clearTimeout(timer)
+  }, [searchTerm, consulta.busca])
+
   function handlePeriodoChange(periodo: PeriodoSelecionado) {
-    setPeriodoChave(`${periodo.inicio ?? ''}|${periodo.fim ?? ''}`)
-    carregarPedidos(periodo.inicio, periodo.fim)
+    setConsulta((c) => ({ ...c, inicio: periodo.inicio, fim: periodo.fim, pagina: 1 }))
   }
+
+  const recarregar = (voltarParaPrimeira = false) =>
+    setConsulta((c) => ({ ...c, pagina: voltarParaPrimeira ? 1 : c.pagina, recarga: c.recarga + 1 }))
 
   function mostrarErro(texto: string) {
     setMensagem(texto)
     setTimeout(() => setMensagem(''), 4000)
   }
 
-  // Cálculos para os cards
-  const totalPedidos = pedidos.length
-  const totalPares = pedidos.reduce((acc, p) => acc + p.pares, 0)
-  const totalVendas = pedidos.reduce((acc, p) => acc + p.valorTotal, 0)
-  const totalComissao = pedidos.reduce((acc, p) => acc + p.valorComissao, 0)
+  // Totais dos cards: calculados pelo backend sobre todos os pedidos do período
+  const { totalPedidos, totalPares, valorTotalVendas: totalVendas, valorTotalComissao: totalComissao } = resumo
 
   // Funções CRUD
   const handleSavePedido = async (payload: PedidoFormPayload) => {
-    const novo = await criarPedido(payload)
-    setPedidos(prev => [novo, ...prev])
+    await criarPedido(payload)
+    recarregar(true) // o novo pedido é o mais recente: aparece na página 1
   }
 
   const handleEditPedido = (pedido: Pedido) => {
@@ -123,8 +166,8 @@ export default function PedidosPage() {
   }
 
   const handleUpdatePedido = async (id: string, payload: PedidoFormPayload) => {
-    const atualizado = await editarPedido(id, payload)
-    setPedidos(prev => prev.map(p => (p.id === id ? atualizado : p)))
+    await editarPedido(id, payload)
+    recarregar()
   }
 
   const handleViewPedido = (pedido: Pedido) => {
@@ -137,20 +180,16 @@ export default function PedidosPage() {
 
     try {
       await excluirPedido(id)
-      setPedidos(prev => prev.filter(p => p.id !== id))
+      recarregar() // total e páginas são recalculados pelo backend
     } catch (err) {
       mostrarErro(err instanceof Error ? err.message : 'Não foi possível excluir o pedido')
     }
   }
 
-  // Filtragem
-  const pedidosFiltrados = pedidos.filter(pedido =>
-    pedido.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pedido.marcaNome.toLowerCase().includes(searchTerm.toLowerCase())
+  // Alimenta o componente de paginação existente com os metadados da API
+  const paginacao = paginacaoRemota(paginaExibida, totalItens, (pagina) =>
+    setConsulta((c) => ({ ...c, pagina }))
   )
-
-  // Paginação sobre a lista já filtrada; busca ou período novos voltam à página 1
-  const paginacao = usePaginacao(pedidosFiltrados, `${searchTerm}|${periodoChave}`)
 
   return (
     <div className="space-y-8">
@@ -266,11 +305,11 @@ export default function PedidosPage() {
           </div>
 
           {/* Lista de Pedidos */}
-          {pedidosFiltrados.length > 0 ? (
-            <>
+          {pedidos.length > 0 ? (
+            <div className={`space-y-8 transition-opacity ${atualizando ? 'opacity-60' : ''}`} aria-busy={atualizando}>
               {visualizacao === 'cards' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                  {paginacao.itensPagina.map((pedido) => (
+                  {pedidos.map((pedido) => (
                     <PedidoCard
                       key={pedido.id}
                       pedido={pedido}
@@ -282,22 +321,22 @@ export default function PedidosPage() {
                 </div>
               ) : (
                 <PedidoTabela
-                  pedidos={paginacao.itensPagina}
+                  pedidos={pedidos}
                   onView={handleViewPedido}
                   onEdit={handleEditPedido}
                   onDelete={handleDeletePedido}
                 />
               )}
               <Paginacao paginacao={paginacao} rotulo="pedidos" />
-            </>
+            </div>
           ) : (
             <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
               <Package className="mx-auto text-gray-300 mb-4" size={48} />
               <h3 className="text-lg font-medium text-gray-700 mb-2">
-                {searchTerm ? 'Nenhum pedido encontrado' : 'Nenhum pedido cadastrado'}
+                {consulta.busca ? 'Nenhum pedido encontrado' : 'Nenhum pedido cadastrado'}
               </h3>
               <p className="text-gray-500">
-                {searchTerm
+                {consulta.busca
                   ? 'Tente buscar por outro termo'
                   : 'Clique em "Novo Pedido" para começar'}
               </p>

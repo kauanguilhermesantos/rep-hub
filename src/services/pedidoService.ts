@@ -79,18 +79,62 @@ function buildBody(payload: PedidoFormPayload) {
   }
 }
 
-export async function listarPedidos(inicio?: string, fim?: string): Promise<Pedido[]> {
+export interface ResumoPedidos {
+  totalPedidos: number
+  totalPares: number
+  valorTotalVendas: number
+  valorTotalComissao: number
+}
+
+export interface ConsultaPedidos {
+  pagina: number // base 1 (a API usa base 0)
+  tamanho?: number
+  inicio?: string
+  fim?: string
+  busca?: string
+}
+
+export interface PaginaPedidos {
+  pedidos: Pedido[]
+  pagina: number // base 1
+  tamanho: number
+  totalItens: number
+  totalPaginas: number
+  resumo: ResumoPedidos
+}
+
+interface PaginaPedidosApi {
+  content: PedidoApi[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  resumo: ResumoPedidos
+}
+
+// Uma página de pedidos. Período e busca são aplicados no backend antes da paginação;
+// o resumo traz os totais de TODOS os pedidos do período (não só os da página).
+export async function listarPedidos({ pagina, tamanho = 10, inicio, fim, busca }: ConsultaPedidos): Promise<PaginaPedidos> {
   const params = new URLSearchParams()
+  params.set('page', String(Math.max(pagina - 1, 0)))
+  params.set('size', String(tamanho))
   if (inicio) params.set('inicio', inicio)
   if (fim) params.set('fim', fim)
-  const query = params.toString() ? `?${params.toString()}` : ''
+  if (busca) params.set('busca', busca)
 
-  const response = await authFetch(`/api/pedidos${query}`)
+  const response = await authFetch(`/api/pedidos?${params.toString()}`)
   if (!response.ok) {
     await lancarErroApi(response, "Não foi possível carregar os pedidos")
   }
-  const data: PedidoApi[] = await response.json()
-  return data.map(mapPedido)
+  const data: PaginaPedidosApi = await response.json()
+  return {
+    pedidos: data.content.map(mapPedido),
+    pagina: data.page + 1,
+    tamanho: data.size,
+    totalItens: data.totalElements,
+    totalPaginas: data.totalPages,
+    resumo: data.resumo,
+  }
 }
 
 // Últimos pedidos do usuário logado, já ordenados pelo backend (mais recente primeiro)

@@ -61,3 +61,27 @@ export function usePaginacao<T>(itens: T[], chaveReset: string = '', tamanho: nu
     proxima: () => irParaPagina(pagina + 1),
   }
 }
+
+/**
+ * Paginação feita no servidor: os itens já chegam prontos e só os metadados vêm da API.
+ * Devolve o mesmo formato que o componente <Paginacao /> consome (página base 1).
+ */
+export function paginacaoRemota(
+  pagina: number,
+  totalItens: number,
+  irParaPagina: (pagina: number) => void,
+  tamanho: number = TAMANHO_PAGINA
+): Omit<Paginacao<unknown>, 'itensPagina'> {
+  const totalPaginas = Math.max(1, Math.ceil(totalItens / tamanho))
+  const destino = (p: number) => irParaPagina(Math.min(Math.max(1, p), totalPaginas))
+  return {
+    pagina,
+    totalPaginas,
+    totalItens,
+    inicio: totalItens === 0 ? 0 : (pagina - 1) * tamanho + 1,
+    fim: Math.min(pagina * tamanho, totalItens),
+    irParaPagina: destino,
+    anterior: () => destino(pagina - 1),
+    proxima: () => destino(pagina + 1),
+  }
+}
