@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AlertCircle, Loader2, Plus } from 'lucide-react'
 import Modal from '@/components/Modal'
 import { ApiError } from '@/lib/ApiError'
-import { Despesa, DespesaPayload, interpretarValor } from '@/services/despesasService'
+import { Despesa, DespesaPayload, FORMAS_PAGAMENTO, FormaPagamento, interpretarValor } from '@/services/despesasService'
 import { CategoriaDespesa, criarCategoria, listarCategorias, MAX_NOME_CATEGORIA, validarNomeCategoria } from '@/services/categoriasService'
 import { notificar } from '@/services/notificacoesService'
 import { hojeIso } from '@/lib/formatoHora'
@@ -48,6 +48,7 @@ export default function DespesaModal({ isOpen, onClose, despesa, onSave }: Despe
   const [descricao, setDescricao] = useState('')
   const [valor, setValor] = useState('')
   const [data, setData] = useState('')
+  const [formaPagamento, setFormaPagamento] = useState<FormaPagamento | ''>('')
   const [observacoes, setObservacoes] = useState('')
   const [erros, setErros] = useState<Record<string, string>>({})
   const [erroGeral, setErroGeral] = useState('')
@@ -76,6 +77,7 @@ export default function DespesaModal({ isOpen, onClose, despesa, onSave }: Despe
     setDescricao(despesa?.descricao ?? '')
     setValor(despesa ? valorParaCampo(despesa.valor) : '')
     setData(despesa?.data?.slice(0, 10) ?? hojeIso())
+    setFormaPagamento(despesa?.formaPagamento ?? '')
     setObservacoes(despesa?.observacoes ?? '')
     setErros({})
     setErroGeral('')
@@ -99,6 +101,8 @@ export default function DespesaModal({ isOpen, onClose, despesa, onSave }: Despe
     if (!data) novos.data = 'A data da despesa é obrigatória'
     else if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) novos.data = 'Informe uma data válida'
     else if (data > hojeIso()) novos.data = 'A data da despesa não pode ser futura'
+
+    if (!formaPagamento) novos.formaPagamento = 'Selecione a forma de pagamento'
 
     if (observacoes.length > MAX_OBSERVACOES) novos.observacoes = `As observações devem ter no máximo ${MAX_OBSERVACOES} caracteres`
     return novos
@@ -144,6 +148,7 @@ export default function DespesaModal({ isOpen, onClose, despesa, onSave }: Despe
         descricao: descricao.trim(),
         valor: interpretarValor(valor) as number,
         data,
+        formaPagamento: formaPagamento as FormaPagamento,
         observacoes: observacoes.trim() ? observacoes.trim() : null,
       })
       onClose()
@@ -301,6 +306,26 @@ export default function DespesaModal({ isOpen, onClose, despesa, onSave }: Despe
             />
             {erros.data && <p className="text-xs text-red-600 mt-1">{erros.data}</p>}
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="desp-forma-pagamento" className="block text-sm font-medium text-gray-700 mb-2">
+            Forma de pagamento <span className="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="desp-forma-pagamento"
+            value={formaPagamento}
+            onChange={(e) => setFormaPagamento(e.target.value as FormaPagamento | '')}
+            required
+            aria-invalid={!!erros.formaPagamento}
+            className={inputClass(erros.formaPagamento)}
+          >
+            <option value="">Selecione a forma de pagamento</option>
+            {Object.entries(FORMAS_PAGAMENTO).map(([valor, rotulo]) => (
+              <option key={valor} value={valor}>{rotulo}</option>
+            ))}
+          </select>
+          {erros.formaPagamento && <p className="text-xs text-red-600 mt-1">{erros.formaPagamento}</p>}
         </div>
 
         <div>

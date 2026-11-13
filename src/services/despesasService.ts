@@ -1,6 +1,18 @@
 import { authFetch } from "@/lib/Auth"
 import { lancarErroApi } from "@/lib/ApiError"
 
+// Mesmos valores do enum FormaPagamento do backend; o rótulo é só de exibição
+export const FORMAS_PAGAMENTO = {
+  DINHEIRO: "Dinheiro",
+  PIX: "Pix",
+  CARTAO_CREDITO: "Cartão de crédito",
+  CARTAO_DEBITO: "Cartão de débito",
+  TRANSFERENCIA: "Transferência bancária",
+  OUTRO: "Outro",
+} as const
+
+export type FormaPagamento = keyof typeof FORMAS_PAGAMENTO
+
 // Formato real devolvido pelo backend (DespesaResponse)
 export interface Despesa {
   id: string
@@ -11,6 +23,7 @@ export interface Despesa {
   descricao: string
   valor: number          // já com 2 casas, vindo do backend
   data: string           // yyyy-MM-dd
+  formaPagamento: FormaPagamento | null // null em despesas antigas
   observacoes: string | null
   criadoEm: string
   atualizadoEm: string
@@ -35,6 +48,7 @@ export interface DespesaPayload {
   descricao: string
   valor: number
   data: string // yyyy-MM-dd
+  formaPagamento: FormaPagamento
   observacoes: string | null
 }
 

@@ -22,7 +22,7 @@ import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
 import { buscarViagem, finalizarViagem, Viagem } from '@/services/viagensService'
 import { listarPedidosDaViagem, PedidosDaViagem, removerPedidoDaViagem } from '@/services/viagemPedidosService'
 import {
-  atualizarDespesa, criarDespesa, DespesaPayload, Despesa, DespesasViagem,
+  atualizarDespesa, criarDespesa, DespesaPayload, Despesa, DespesasViagem, FORMAS_PAGAMENTO,
   excluirDespesa, listarDespesas,
 } from '@/services/despesasService'
 import { notificar } from '@/services/notificacoesService'
@@ -348,6 +348,9 @@ export default function DetalheViagemPage() {
                         {d.categoriaNome}
                       </span>
                       <span className="text-xs text-gray-500">{formatarDataIso(d.data)}</span>
+                      {d.formaPagamento && (
+                        <span className="text-xs text-gray-500">· {FORMAS_PAGAMENTO[d.formaPagamento]}</span>
+                      )}
                     </div>
                     <p className="mt-1 font-medium text-gray-800 wrap-break-word">{d.descricao}</p>
                     {d.observacoes && <p className="mt-0.5 text-sm text-gray-500 wrap-break-word whitespace-pre-line">{d.observacoes}</p>}
