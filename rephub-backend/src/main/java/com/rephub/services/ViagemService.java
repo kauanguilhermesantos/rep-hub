@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
@@ -357,7 +358,9 @@ public class ViagemService {
     private ViagemResponse resposta(Viagem viagem, List<Despesa> despesas, Map<String, Pedido> pedidos) {
         long total = despesas.stream().mapToLong(Despesa::getValorCentavos).sum();
         int quantidade = viagem.getPedidoIds() != null ? viagem.getPedidoIds().size() : 0;
-        return ViagemResponse.of(viagem, total, despesas.size(), quantidade, somarVendas(viagem.getPedidoIds(), pedidos));
+        return ViagemResponse.of(viagem, total, despesas.size(), quantidade,
+                somar(viagem.getPedidoIds(), pedidos, Pedido::getValorTotal),
+                somar(viagem.getPedidoIds(), pedidos, Pedido::getValorComissao));
     }
 
     /**
@@ -383,8 +386,8 @@ public class ViagemService {
         return mapa;
     }
 
-    /** Soma o valorTotal dos pedidos da viagem. Ids repetidos contam uma vez; ids sem pedido valem zero. */
-    static BigDecimal somarVendas(List<String> pedidoIds, Map<String, Pedido> pedidos) {
+    /** Soma um valor (total ou comissão) dos pedidos da viagem. Ids repetidos contam uma vez; ids sem pedido valem zero. */
+    static BigDecimal somar(List<String> pedidoIds, Map<String, Pedido> pedidos, Function<Pedido, Double> valor) {
         BigDecimal soma = BigDecimal.ZERO.setScale(2);
         if (pedidoIds == null) {
             return soma;
@@ -392,7 +395,7 @@ public class ViagemService {
         for (String id : new LinkedHashSet<>(pedidoIds)) {
             Pedido p = pedidos.get(id);
             if (p != null) {
-                soma = soma.add(Dinheiro.deDouble(p.getValorTotal()));
+                soma = soma.add(Dinheiro.deDouble(valor.apply(p)));
             }
         }
         return soma;
