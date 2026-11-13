@@ -15,6 +15,9 @@ export interface Viagem {
   totalDespesas: number          // calculado pelo backend a partir das despesas
   totalVendas: number            // soma do valorTotal dos pedidos associados (calculado pelo backend)
   resultadoFinanceiro: number    // totalVendas - totalDespesas; saldo simplificado, não é lucro líquido
+  totalComissao: number          // soma do valorComissao dos pedidos associados
+  lucro: number                  // totalComissao - totalDespesas
+  percentualLucro: number | null // lucro / totalComissao * 100; null quando não há comissão
   quantidadeDespesas: number
   quantidadePedidos: number
   criadoEm: string

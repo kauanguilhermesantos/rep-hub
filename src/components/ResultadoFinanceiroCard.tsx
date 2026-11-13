@@ -6,6 +6,7 @@ import { VALOR_OCULTO } from '@/lib/useOcultarValores'
 interface ResultadoFinanceiroCardProps {
   resultado: number
   oculto?: boolean
+  titulo?: string
 }
 
 // Classes literais (o Tailwind só gera o que encontra escrito por inteiro no código)
@@ -16,7 +17,7 @@ const ESTILOS = {
 } as const
 
 // Mesmo formato do ResumoCard, com cor e ícone conforme o resultado ser positivo, negativo ou zerado
-export default function ResultadoFinanceiroCard({ resultado, oculto = false }: ResultadoFinanceiroCardProps) {
+export default function ResultadoFinanceiroCard({ resultado, oculto = false, titulo = 'Resultado financeiro' }: ResultadoFinanceiroCardProps) {
   const estilo = ESTILOS[situacaoResultado(resultado)]
   const Icone = estilo.Icone
 
@@ -27,7 +28,7 @@ export default function ResultadoFinanceiroCard({ resultado, oculto = false }: R
           <Icone className={`${estilo.icone} size-5 sm:size-6.5`} aria-hidden="true" />
         </div>
         <div className="min-w-0 w-full sm:flex-1">
-          <h4 className="text-xs sm:text-sm font-medium text-gray-500 mb-0.5 sm:mb-1 leading-tight">Resultado financeiro</h4>
+          <h4 className="text-xs sm:text-sm font-medium text-gray-500 mb-0.5 sm:mb-1 leading-tight">{titulo}</h4>
           <p
             className={`text-base min-[400px]:text-lg sm:text-2xl font-bold wrap-break-word leading-tight ${oculto ? 'text-gray-800' : estilo.valor}`}
             aria-label={oculto ? 'Valor oculto' : undefined}

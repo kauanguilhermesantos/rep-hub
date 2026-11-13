@@ -14,7 +14,7 @@ interface ViagemCardProps {
 export default function ViagemCard({ viagem, ocultarValores = false }: ViagemCardProps) {
   const cidadesVisitadas = textoCidadesVisitadas(viagem.roteiro)
   const finalizada = viagem.status === 'FINALIZADA'
-  const situacao = situacaoResultado(viagem.resultadoFinanceiro)
+  const situacao = situacaoResultado(viagem.lucro)
   const corResultado = ocultarValores ? 'text-gray-800'
     : situacao === 'positivo' ? 'text-green-700' : situacao === 'negativo' ? 'text-red-700' : 'text-gray-700'
 
@@ -80,12 +80,12 @@ export default function ViagemCard({ viagem, ocultarValores = false }: ViagemCar
         <div className="flex items-center gap-2 min-w-0">
           <TrendingUp size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
           <div className="min-w-0">
-            <dt className="text-gray-500">Resultado financeiro</dt>
+            <dt className="text-gray-500">Lucro da viagem</dt>
             <dd
               className={`font-semibold wrap-break-word ${corResultado}`}
               aria-label={ocultarValores ? 'Valor oculto' : undefined}
             >
-              {ocultarValores ? VALOR_OCULTO : formatarMoeda(viagem.resultadoFinanceiro ?? 0)}
+              {ocultarValores ? VALOR_OCULTO : formatarMoeda(viagem.lucro ?? 0)}
             </dd>
           </div>
         </div>

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import {
   AlertCircle, ArrowLeft, CalendarCheck, CalendarDays, Info,
-  Flag, Lock, MapPin, Pencil, Plus, ShoppingBag, Tag, Trash2, Unlink, Wallet,
+  Flag, Lock, MapPin, Pencil, Percent, Plus, ShoppingBag, Tag, Trash2, Unlink, Wallet,
 } from 'lucide-react'
 
 import ResumoCard from '@/components/ResumoCard'
@@ -28,7 +28,7 @@ import {
 import { notificar } from '@/services/notificacoesService'
 import { PedidoDaViagem } from '@/services/viagemPedidosService'
 import { formatarData, formatarDataHora, formatarDataIso } from '@/lib/formatoHora'
-import { formatarMoeda } from '@/lib/formatoMoeda'
+import { formatarMoeda, formatarPercentual } from '@/lib/formatoMoeda'
 
 // Nesta página, despesas e pedidos associados são paginados de 5 em 5
 const ITENS_POR_PAGINA = 5
@@ -261,21 +261,28 @@ export default function DetalheViagemPage() {
 
       {/* Indicadores financeiros: todos calculados e devolvidos pelo backend */}
       <section aria-label="Indicadores financeiros" className="space-y-2">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <ResumoCard title="Total de vendas" value={formatarMoeda(viagem.totalVendas ?? 0)} icon={ShoppingBag} color="green" oculto={oculto} />
-          <ResumoCard title="Total de despesas" value={formatarMoeda(viagem.totalDespesas ?? despesas.totalDespesas)} icon={Wallet} color="red" oculto={oculto} />
-          <ResultadoFinanceiroCard resultado={viagem.resultadoFinanceiro ?? 0} oculto={oculto} />
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+          <ResumoCard title="Comissão total" value={formatarMoeda(viagem.totalComissao ?? 0)} icon={ShoppingBag} color="purple" oculto={oculto} />
+          <ResumoCard title="Despesas totais" value={formatarMoeda(viagem.totalDespesas ?? despesas.totalDespesas)} icon={Wallet} color="red" oculto={oculto} />
+          <ResultadoFinanceiroCard titulo="Lucro da viagem" resultado={viagem.lucro ?? 0} oculto={oculto} />
+          <ResumoCard
+            title="Lucro sobre a comissão"
+            value={viagem.percentualLucro == null ? '—' : formatarPercentual(viagem.percentualLucro)}
+            icon={Percent}
+            color="blue"
+            oculto={oculto}
+          />
         </div>
         <p className="flex items-start gap-1.5 text-xs text-gray-500">
           <Info size={14} className="shrink-0 mt-0.5" aria-hidden="true" />
           <span>
-            O resultado financeiro é a diferença entre vendas e despesas registradas na viagem. Não é o lucro líquido:
-            não considera custo de mercadorias, impostos, comissões ou outros custos que não estejam no sistema.
+            Lucro = comissão dos pedidos associados − despesas registradas na viagem. O percentual é o lucro sobre a
+            comissão total e não é exibido enquanto não houver comissão.
           </span>
         </p>
       </section>
 
-      <section aria-label="Resumo da viagem" className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <section aria-label="Resumo da viagem" className="grid grid-cols-2 gap-3 sm:gap-4">
         <ResumoCard title="Despesas registradas" value={String(despesas.despesas.length)} icon={Wallet} color="gray" oculto={oculto} />
         <ResumoCard title="Pedidos associados" value={String(viagem.quantidadePedidos ?? 0)} icon={ShoppingBag} color="blue" oculto={oculto} />
       </section>
@@ -402,7 +409,7 @@ export default function DetalheViagemPage() {
         )}
 
         {pedidos.pedidos.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <ResumoCard title="Valor dos pedidos" value={formatarMoeda(pedidos.valorTotalPedidos)} icon={ShoppingBag} color="green" oculto={oculto} />
             <ResumoCard title="Comissão dos pedidos" value={formatarMoeda(pedidos.valorTotalComissao)} icon={ShoppingBag} color="purple" oculto={oculto} />
           </div>
