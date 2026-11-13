@@ -9,6 +9,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
+import com.rephub.models.FormaPagamento;
+
 import lombok.Data;
 
 @Data
@@ -31,6 +33,9 @@ public class DespesaRequest {
     @NotNull(message = "A data da despesa é obrigatória")
     @PastOrPresent(message = "A data da despesa não pode ser futura")
     private LocalDate data;
+
+    @NotNull(message = "A forma de pagamento é obrigatória")
+    private FormaPagamento formaPagamento;
 
     @Size(max = 500, message = "As observações devem ter no máximo 500 caracteres")
     private String observacoes;

@@ -137,6 +137,7 @@ public class DespesaService {
         despesa.setDescricao(request.getDescricao().trim());
         despesa.setValorCentavos(Dinheiro.aCentavos(request.getValor()));
         despesa.setData(request.getData());
+        despesa.setFormaPagamento(request.getFormaPagamento());
         String obs = request.getObservacoes();
         despesa.setObservacoes(obs == null || obs.isBlank() ? null : obs.trim());
     }

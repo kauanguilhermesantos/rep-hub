@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.rephub.models.Despesa;
+import com.rephub.models.FormaPagamento;
 import com.rephub.util.Dinheiro;
 
 import lombok.Builder;
@@ -21,6 +22,7 @@ public class DespesaResponse {
     private String descricao;
     private BigDecimal valor;
     private LocalDate data;
+    private FormaPagamento formaPagamento; // null em despesas antigas
     private String observacoes;
     private LocalDateTime criadoEm;
     private LocalDateTime atualizadoEm;
@@ -36,6 +38,7 @@ public class DespesaResponse {
                 .descricao(d.getDescricao())
                 .valor(Dinheiro.deCentavos(d.getValorCentavos()))
                 .data(d.getData())
+                .formaPagamento(d.getFormaPagamento())
                 .observacoes(d.getObservacoes())
                 .criadoEm(d.getCriadoEm())
                 .atualizadoEm(d.getAtualizadoEm())

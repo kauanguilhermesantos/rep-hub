@@ -42,6 +42,7 @@ public class Despesa {
     private long valorCentavos;
 
     private LocalDate data;
+    private FormaPagamento formaPagamento; // null em despesas antigas
     private String observacoes;
 
     private LocalDateTime criadoEm;
