@@ -17,6 +17,7 @@ import AssociarPedidosModal from '@/components/AssociarPedidosModal'
 import FinalizarViagemModal from '@/components/FinalizarViagemModal'
 import CategoriasModal from '@/components/CategoriasModal'
 import Paginacao from '@/components/Paginacao'
+import TabelaDespesasAgrupadas from '@/components/TabelaDespesasAgrupadas'
 import { usePaginacao } from '@/lib/usePaginacao'
 import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
 import { buscarViagem, finalizarViagem, Viagem } from '@/services/viagensService'
@@ -176,7 +177,6 @@ export default function DetalheViagemPage() {
 
   const finalizada = viagem.status === 'FINALIZADA'
   const roteiro = viagem.roteiro ?? []
-  const totaisPorCategoria = despesas.totalPorCategoria ?? []
   const mostrarValor = (valor: number) => (oculto ? VALOR_OCULTO : formatarMoeda(valor))
 
   return (
@@ -287,20 +287,6 @@ export default function DetalheViagemPage() {
         <ResumoCard title="Pedidos associados" value={String(viagem.quantidadePedidos ?? 0)} icon={ShoppingBag} color="blue" oculto={oculto} />
       </section>
 
-      {totaisPorCategoria.length > 0 && (
-        <section aria-label="Total por categoria" className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
-          <h2 className="text-sm font-medium text-gray-500 mb-3">Total por categoria</h2>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2 text-sm">
-            {totaisPorCategoria.map((c) => (
-              <li key={c.categoria} className="flex justify-between gap-3 min-w-0">
-                <span className="text-gray-600 wrap-break-word min-w-0">{c.categoriaNome}</span>
-                <span className="font-medium text-gray-800 shrink-0">{mostrarValor(c.total)}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       {/* Despesas */}
       <section aria-labelledby="titulo-despesas" className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -388,6 +374,9 @@ export default function DetalheViagemPage() {
           </>
         )}
       </section>
+
+      {/* Resumo das despesas por forma de pagamento ou categoria: agregado no backend, independe da paginação acima */}
+      <TabelaDespesasAgrupadas viagemId={viagem.id} oculto={oculto} recarregarQuando={despesas} />
 
       {/* Pedidos associados (referências a pedidos existentes) */}
       <section aria-labelledby="titulo-pedidos" className="space-y-4">
