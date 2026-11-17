@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { FORMAS_PAGAMENTO } from '@/services/despesasService'
 import { buscarDespesasAgrupadas } from '@/services/relatorioService'
@@ -89,7 +90,38 @@ export default function TabelaDespesasAgrupadas({ viagemId, oculto, recarregarQu
       ) : dados && (grupos.length === 0 ? (
         <p className="py-8 text-center text-sm text-gray-500">Nenhuma despesa registrada nesta viagem.</p>
       ) : (
-        <div className={`overflow-x-auto overscroll-x-contain transition-opacity ${carregando ? 'opacity-60' : ''}`} aria-busy={carregando}>
+        <div className={`transition-opacity ${carregando ? 'opacity-60' : ''}`} aria-busy={carregando}>
+        {/* Gráfico é só visual; a tabela abaixo traz os mesmos números para leitores de tela */}
+        <div aria-hidden="true" className="mb-6" style={{ height: grupos.length * 40 + 16 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              layout="vertical"
+              data={grupos.map((g) => ({ ...g, rotulo: nomeGrupo(g.chave, g.nome) }))}
+              margin={{ top: 8, right: 16, bottom: 8, left: 0 }}
+              barCategoryGap={8}
+            >
+              <XAxis type="number" hide />
+              <YAxis
+                type="category"
+                dataKey="rotulo"
+                width={130}
+                tickLine={false}
+                axisLine={false}
+                tick={{ fill: '#4b5563', fontSize: 13 }}
+              />
+              <Tooltip
+                cursor={{ fill: '#f3f4f6' }}
+                formatter={(_v, _n, item) => [
+                  `${moeda(item.payload.total)} (${formatarPercentual(item.payload.percentual)})`,
+                  'Valor total',
+                ]}
+                contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '8px' }}
+              />
+              <Bar dataKey="total" fill="#2563eb" radius={[0, 4, 4, 0]} maxBarSize={24} isAnimationActive={false} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="overflow-x-auto overscroll-x-contain">
           <table className="w-full min-w-120">
             <thead>
               <tr className="border-b border-gray-200 text-sm font-medium text-gray-500">
@@ -118,6 +150,7 @@ export default function TabelaDespesasAgrupadas({ viagemId, oculto, recarregarQu
               </tr>
             </tfoot>
           </table>
+        </div>
         </div>
       ))}
     </section>
