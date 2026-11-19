@@ -16,11 +16,12 @@ import {
 import { Marca } from '@/components/MarcaCard'
 import NovoPedidoModal from '@/components/NovoPedidoModal'
 import EditarPedidoModal from '@/components/EditarPedidoModal'
+import ResumoCard from '@/components/ResumoCard'
 import PedidoCard from '@/components/PedidoCard'
 import PedidoTabela from '@/components/Pedidotabela'
 import VisualizarPedidoModal from '@/components/VisualizarPedidoModal'
 import BotaoOcultarValores from '@/components/BotaoOcultarValores'
-import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
+import { useOcultarValores } from '@/lib/useOcultarValores'
 import FiltroPeriodo, { PeriodoSelecionado } from '@/components/Filtroperiodo'
 import Paginacao from '@/components/Paginacao'
 import { paginacaoRemota } from '@/lib/usePaginacao'
@@ -46,21 +47,6 @@ export interface Pedido {
   dataCadastro: string
   dataCadastroIso: string
 }
-
-// Componente de Card de Resumo
-const SummaryCard = ({ title, value, icon: Icon, color, oculto = false }: any) => (
-  <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 min-w-0">
-    <div className="flex items-center justify-between mb-3">
-      <div className={`p-3 rounded-lg bg-${color}-50`}>
-        <Icon className={`text-${color}-600`} size={24} />
-      </div>
-    </div>
-    <p className="text-sm text-gray-500 mb-1">{title}</p>
-    <p className="text-xl sm:text-2xl font-bold text-gray-800 wrap-break-word" aria-label={oculto ? 'Valor oculto' : undefined}>
-      {oculto ? VALOR_OCULTO : value}
-    </p>
-  </div>
-)
 
 // O que define a consulta à API. Mudar busca ou período volta para a página 1;
 // `recarga` força nova requisição da mesma consulta (após criar/editar/excluir).
@@ -238,29 +224,29 @@ export default function PedidosPage() {
       ) : !erroCarregamento && (
         <>
           {/* Cards de Resumo */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <SummaryCard
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+            <ResumoCard
               oculto={oculto}
               title="Total de Pedidos"
               value={totalPedidos}
               icon={Package}
               color="blue"
             />
-            <SummaryCard
+            <ResumoCard
               oculto={oculto}
               title="Total de Pares"
               value={totalPares}
               icon={ShoppingBag}
               color="green"
             />
-            <SummaryCard
+            <ResumoCard
               oculto={oculto}
               title="Valor em Vendas"
               value={totalVendas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               icon={DollarSign}
               color="yellow"
             />
-            <SummaryCard
+            <ResumoCard
               oculto={oculto}
               title="Comissão Total"
               value={totalComissao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}

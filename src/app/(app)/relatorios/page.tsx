@@ -9,42 +9,13 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { RelatorioGeral, DadosGrafico } from '@/types/relatorio'
+import ResumoCard from "@/components/ResumoCard"
 import GraficoPizza from '@/components/GraficoPizza'
 import TabelaRelatorioMarcas from '@/components/TabelaRelatorioMarcas'
 import BotaoOcultarValores from '@/components/BotaoOcultarValores'
-import { useOcultarValores, VALOR_OCULTO } from '@/lib/useOcultarValores'
+import { useOcultarValores } from '@/lib/useOcultarValores'
 import FiltroPeriodo, { PeriodoSelecionado } from '@/components/Filtroperiodo'
 import { buscarRelatorio } from '@/services/relatorioService'
-
-// Componente de Card de Resumo
-const CORES_RESUMO = {
-  blue: { fundo: 'bg-blue-50', icone: 'text-blue-600' },
-  green: { fundo: 'bg-green-50', icone: 'text-green-600' },
-  yellow: { fundo: 'bg-yellow-50', icone: 'text-yellow-600' },
-  purple: { fundo: 'bg-purple-50', icone: 'text-purple-600' },
-} as const
-
-const SummaryCard = ({ title, value, icon: Icon, color, trend, oculto = false }: any) => {
-  const cor = CORES_RESUMO[color as keyof typeof CORES_RESUMO] ?? CORES_RESUMO.blue
-  return (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-6 hover:shadow-md transition-all min-w-0">
-    <div className="flex items-center justify-between mb-2 sm:mb-3">
-      <div className={`p-2 sm:p-3 rounded-lg ${cor.fundo}`}>
-        <Icon className={`${cor.icone} size-5 sm:size-6`} aria-hidden="true" />
-      </div>
-      {trend && (
-        <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
-          +{trend}%
-        </span>
-      )}
-    </div>
-    <p className="text-xs sm:text-sm text-gray-500 mb-0.5 sm:mb-1 leading-tight">{title}</p>
-    <p className="text-base min-[400px]:text-lg sm:text-2xl font-bold text-gray-800 wrap-break-word leading-tight" aria-label={oculto ? 'Valor oculto' : undefined}>
-      {oculto ? VALOR_OCULTO : value}
-    </p>
-  </div>
-  )
-}
 
 export default function RelatoriosPage() {
   const [marcaSelecionada, setMarcaSelecionada] = useState('todas')
@@ -135,29 +106,29 @@ export default function RelatoriosPage() {
       ) : dados && (
         <>
           {/* Cards de Resumo */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-            <SummaryCard
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
+            <ResumoCard
               oculto={oculto}
               title="Total de Pedidos" 
               value={formatNumber(dados.totalPedidos)} 
               icon={Package} 
               color="blue" 
             />
-            <SummaryCard
+            <ResumoCard
               oculto={oculto}
               title="Total de Pares" 
               value={formatNumber(dados.totalPares)} 
               icon={ShoppingBag} 
               color="green" 
             />
-            <SummaryCard
+            <ResumoCard
               oculto={oculto}
               title="Valor em Vendas" 
               value={formatCurrency(dados.valorTotalVendas)} 
               icon={DollarSign} 
               color="yellow" 
             />
-            <SummaryCard
+            <ResumoCard
               oculto={oculto}
               title="Comissão Total" 
               value={formatCurrency(dados.valorTotalComissao)} 

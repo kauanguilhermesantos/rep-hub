@@ -148,7 +148,7 @@ export default function Home() {
       </div>
 
       {/* Cards de Resumo */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
         {summaryData.map((item, index) => (
           <ResumoCard key={index} {...item} oculto={oculto} />
         ))}

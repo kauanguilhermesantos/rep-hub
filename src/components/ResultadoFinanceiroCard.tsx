@@ -22,15 +22,15 @@ export default function ResultadoFinanceiroCard({ resultado, oculto = false, tit
   const Icone = estilo.Icone
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-3 sm:p-6 border border-gray-100 hover:shadow-md transition-shadow min-w-0">
-      <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4">
+    <div className="bg-white rounded-xl shadow-sm p-3 sm:p-6 border border-gray-100 hover:shadow-md transition-shadow min-w-0 @container">
+      <div className="flex flex-col items-start gap-2 @[18rem]:flex-row @[18rem]:items-center @[18rem]:gap-4">
         <div className={`p-2 sm:p-3 rounded-lg shrink-0 ${estilo.fundo}`}>
           <Icone className={`${estilo.icone} size-5 sm:size-6.5`} aria-hidden="true" />
         </div>
-        <div className="min-w-0 w-full sm:flex-1">
+        <div className="min-w-0 w-full @[18rem]:flex-1">
           <h4 className="text-xs sm:text-sm font-medium text-gray-500 mb-0.5 sm:mb-1 leading-tight">{titulo}</h4>
           <p
-            className={`text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl font-bold wrap-break-word leading-tight ${oculto ? 'text-gray-800' : estilo.valor}`}
+            className={`text-[13px] @[7.25rem]:text-sm @[8.25rem]:text-base @[9.25rem]:text-lg @[18rem]:text-2xl font-bold wrap-break-word leading-tight ${oculto ? 'text-gray-800' : estilo.valor}`}
             aria-label={oculto ? 'Valor oculto' : undefined}
           >
             {oculto ? VALOR_OCULTO : formatarMoeda(resultado ?? 0)}
