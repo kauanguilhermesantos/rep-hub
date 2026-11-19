@@ -72,7 +72,7 @@ export default function UsuarioLayout({ children }: { children: React.ReactNode 
         {/* Overlay para mobile quando sidebar está aberta */}
         {mobileMenuOpen && (
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+            className="fixed inset-0 bg-black/50 z-20 lg:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
         )}

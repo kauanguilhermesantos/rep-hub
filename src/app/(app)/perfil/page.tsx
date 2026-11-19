@@ -323,7 +323,7 @@ export default function PerfilPage() {
                     )}
                   </>
                 ) : (
-                  <p className="text-gray-800 py-2">{usuario.email}</p>
+                  <p className="text-gray-800 py-2 break-all">{usuario.email}</p>
                 )}
               </div>
 

@@ -2,7 +2,7 @@ import { Package } from 'lucide-react'
 
 export default function PedidoRecenteCard({ order }: { order: any }) {
   return (
-    <div className="flex items-center justify-between gap-3 p-3 sm:p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 p-3 sm:p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
       <div className="flex items-center gap-3 sm:gap-4 min-w-0">
         <div className="w-10 h-10 shrink-0 rounded-lg bg-blue-100 flex items-center justify-center">
           <Package className="text-blue-600" size={20} />
@@ -16,7 +16,7 @@ export default function PedidoRecenteCard({ order }: { order: any }) {
           </div>
         </div>
       </div>
-      <div className="text-right shrink-0">
+      <div className="text-right shrink-0 ml-auto">
         <p className="font-semibold text-gray-800 text-sm sm:text-base">{order.value}</p>
       </div>
     </div>

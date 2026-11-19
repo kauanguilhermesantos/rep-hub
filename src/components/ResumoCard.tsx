@@ -24,7 +24,7 @@ export default function ResumoCard({ title, value, icon: Icon, color, oculto = f
         <div className="min-w-0 w-full sm:flex-1">
           <h4 className="text-xs sm:text-sm font-medium text-gray-500 mb-0.5 sm:mb-1 leading-tight">{title}</h4>
           <p
-            className="text-base min-[400px]:text-lg sm:text-2xl font-bold text-gray-800 wrap-break-word leading-tight"
+            className="text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl font-bold text-gray-800 wrap-break-word leading-tight"
             aria-label={oculto ? 'Valor oculto' : undefined}
           >
             {oculto ? VALOR_OCULTO : value}
