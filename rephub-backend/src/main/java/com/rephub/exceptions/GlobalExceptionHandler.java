@@ -28,6 +28,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erros);
     }
 
+    // Mesmo formato do @Valid, para validações que dependem de mais de um campo (feitas no service)
+    @ExceptionHandler(CampoInvalidoException.class)
+    public ResponseEntity<Map<String, String>> handleCampoInvalido(CampoInvalidoException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(ex.getCampo(), ex.getMessage()));
+    }
+
     // Fallback para violação de índice único (ex: e-mail duplicado) que não
     // tenha sido tratada localmente no controller — evita um 500 cru.
     @ExceptionHandler(DuplicateKeyException.class)

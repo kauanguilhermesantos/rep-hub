@@ -5,17 +5,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.rephub.dto.PaginaPrepostosResponse;
+import com.rephub.dto.PrepostoRequest;
 import com.rephub.dto.PrepostoResponse;
 import com.rephub.models.Usuario;
 import com.rephub.services.PrepostoService;
 import com.rephub.services.UsuarioService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -53,5 +58,19 @@ public class PrepostoController {
     @GetMapping("/{id}")
     public ResponseEntity<PrepostoResponse> buscar(Authentication authentication, @PathVariable String id) {
         return ResponseEntity.ok(prepostoService.buscar(usuarioId(authentication), id));
+    }
+
+    @PostMapping
+    public ResponseEntity<PrepostoResponse> criar(Authentication authentication,
+                                                  @Valid @RequestBody PrepostoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(prepostoService.criar(usuarioId(authentication), request));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PrepostoResponse> editar(Authentication authentication,
+                                                   @PathVariable String id,
+                                                   @Valid @RequestBody PrepostoRequest request) {
+        return ResponseEntity.ok(prepostoService.editar(usuarioId(authentication), id, request));
     }
 }

@@ -1,20 +1,25 @@
 package com.rephub.services;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.rephub.dto.PaginaPrepostosResponse;
+import com.rephub.dto.PrepostoRequest;
 import com.rephub.dto.PrepostoResponse;
+import com.rephub.exceptions.CampoInvalidoException;
 import com.rephub.exceptions.RecursoNaoEncontradoException;
 import com.rephub.models.Preposto;
 import com.rephub.repositories.PrepostoRepository;
@@ -93,7 +98,63 @@ public class PrepostoService {
     public PrepostoResponse buscar(String usuarioId, String id) {
         return prepostoRepository.findByIdAndUsuarioId(id, usuarioId)
                 .map(PrepostoResponse::from)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Preposto não encontrado"));
+                .orElseThrow(PrepostoService::naoEncontrado);
+    }
+
+    public PrepostoResponse criar(String usuarioId, PrepostoRequest request) {
+        validarDatas(request);
+        LocalDateTime agora = LocalDateTime.now();
+
+        Preposto preposto = new Preposto();
+        preposto.setUsuarioId(usuarioId);
+        preposto.setNome(request.getNome().trim());
+        preposto.setContato(normalizarTexto(request.getContato()));
+        preposto.setComissaoPercentualPadrao(request.getComissaoPercentualPadrao());
+        preposto.setDataInicio(request.getDataInicio());
+        preposto.setDataFim(request.getDataFim());
+        preposto.setAtivo(request.getDataFim() == null); // já cadastrado com data de fim = encerrado
+        preposto.setCriadoEm(agora);
+        preposto.setAtualizadoEm(agora);
+
+        return PrepostoResponse.from(prepostoRepository.save(preposto));
+    }
+
+    /**
+     * $set só dos campos cadastrais, filtrando por id + dono numa única operação: dono, ativo e
+     * criadoEm nunca são tocados, e uma inativação concorrente não é desfeita.
+     */
+    public PrepostoResponse editar(String usuarioId, String id, PrepostoRequest request) {
+        validarDatas(request);
+
+        Update update = new Update()
+                .set("nome", request.getNome().trim())
+                .set("contato", normalizarTexto(request.getContato()))
+                .set("comissaoPercentualPadrao", request.getComissaoPercentualPadrao())
+                .set("dataInicio", request.getDataInicio())
+                .set("dataFim", request.getDataFim())
+                .set("atualizadoEm", LocalDateTime.now());
+
+        Preposto atualizado = mongoTemplate.findAndModify(
+                new Query(Criteria.where("id").is(id).and("usuarioId").is(usuarioId)),
+                update, FindAndModifyOptions.options().returnNew(true), Preposto.class);
+        if (atualizado == null) {
+            throw naoEncontrado();
+        }
+        return PrepostoResponse.from(atualizado);
+    }
+
+    private static void validarDatas(PrepostoRequest request) {
+        if (request.getDataFim() != null && request.getDataFim().isBefore(request.getDataInicio())) {
+            throw new CampoInvalidoException("dataFim", "A data de fim não pode ser anterior à data de início");
+        }
+    }
+
+    private static String normalizarTexto(String texto) {
+        return (texto == null || texto.isBlank()) ? null : texto.trim();
+    }
+
+    private static RecursoNaoEncontradoException naoEncontrado() {
+        return new RecursoNaoEncontradoException("Preposto não encontrado");
     }
 
     private static ResponseStatusException badRequest(String mensagem) {

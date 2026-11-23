@@ -15,8 +15,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 
 import com.rephub.models.Preposto;
 
-// Precisa de um Mongo acessível em MONGO_URI (ex.: docker run -p 27017:27017 mongo). Não aponte para produção.
-@DataMongoTest(properties = "spring.data.mongodb.auto-index-creation=true")
+// Usa o MONGO_URI (Atlas), mas sempre no banco rephub_test: o deleteAll() nunca atinge o banco real
+@DataMongoTest(properties = { "spring.data.mongodb.auto-index-creation=true", "spring.mongodb.database=rephub_test" })
 class PrepostoRepositoryTest {
 
     @Autowired
@@ -27,6 +27,7 @@ class PrepostoRepositoryTest {
 
     @BeforeEach
     void limpar() {
+        assertThat(mongoTemplate.getDb().getName()).as("trava contra apagar dados reais").isEqualTo("rephub_test");
         repository.deleteAll();
     }
 
