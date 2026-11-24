@@ -1,5 +1,6 @@
 package com.rephub.services;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -134,13 +135,47 @@ public class PrepostoService {
                 .set("dataFim", request.getDataFim())
                 .set("atualizadoEm", LocalDateTime.now());
 
-        Preposto atualizado = mongoTemplate.findAndModify(
-                new Query(Criteria.where("id").is(id).and("usuarioId").is(usuarioId)),
-                update, FindAndModifyOptions.options().returnNew(true), Preposto.class);
-        if (atualizado == null) {
+        return PrepostoResponse.from(modificar(usuarioId, id, update));
+    }
+
+    /**
+     * Encerra sem apagar nada (pedidos e pagamentos continuam ligados a ele). Data de fim = hoje se
+     * estiver vazia, mas nunca antes do início. Repetir a chamada não muda a data já gravada.
+     */
+    public PrepostoResponse inativar(String usuarioId, String id) {
+        Preposto preposto = modificar(usuarioId, id,
+                new Update().set("ativo", false).set("atualizadoEm", LocalDateTime.now()));
+        if (preposto.getDataFim() != null) {
+            return PrepostoResponse.from(preposto);
+        }
+        LocalDate hoje = LocalDate.now();
+        LocalDate fim = preposto.getDataInicio() != null && preposto.getDataInicio().isAfter(hoje)
+                ? preposto.getDataInicio() : hoje;
+        // Só preenche se ainda estiver vazia (uma edição concorrente com data de fim prevalece)
+        Preposto encerrado = mongoTemplate.findAndModify(
+                new Query(doDono(usuarioId, id).and("dataFim").is(null)),
+                new Update().set("dataFim", fim), FindAndModifyOptions.options().returnNew(true), Preposto.class);
+        return PrepostoResponse.from(encerrado != null
+                ? encerrado : mongoTemplate.findOne(new Query(doDono(usuarioId, id)), Preposto.class));
+    }
+
+    public PrepostoResponse reativar(String usuarioId, String id) {
+        return PrepostoResponse.from(modificar(usuarioId, id,
+                new Update().set("ativo", true).set("dataFim", null).set("atualizadoEm", LocalDateTime.now())));
+    }
+
+    // Id + dono na mesma operação: de outro usuário ou inexistente dá o mesmo 404
+    private Preposto modificar(String usuarioId, String id, Update update) {
+        Preposto preposto = mongoTemplate.findAndModify(new Query(doDono(usuarioId, id)), update,
+                FindAndModifyOptions.options().returnNew(true), Preposto.class);
+        if (preposto == null) {
             throw naoEncontrado();
         }
-        return PrepostoResponse.from(atualizado);
+        return preposto;
+    }
+
+    private static Criteria doDono(String usuarioId, String id) {
+        return Criteria.where("id").is(id).and("usuarioId").is(usuarioId);
     }
 
     private static void validarDatas(PrepostoRequest request) {

@@ -178,6 +178,65 @@ class PrepostoServiceTest {
         assertThat(intacto.getComissaoPercentualPadrao()).isEqualByComparingTo("2.50");
     }
 
+    // ---- inativar / reativar ----
+
+    @Test
+    void inativarPreencheDataFimComHojeSemApagarEERepetirNaoMudaNada() {
+        PrepostoResponse inativo = service.inativar("usuario-b", doB.getId());
+
+        assertThat(inativo.isAtivo()).isFalse();
+        assertThat(inativo.getDataFim()).isEqualTo(LocalDate.now());
+        assertThat(repository.count()).isEqualTo(4); // nada apagado
+
+        PrepostoResponse denovo = service.inativar("usuario-b", doB.getId());
+        assertThat(denovo.isAtivo()).isFalse();
+        assertThat(denovo.getDataFim()).isEqualTo(LocalDate.now());
+    }
+
+    @Test
+    void inativarMantemDataFimJaPreenchida() {
+        Preposto comFim = repository.findById(doB.getId()).orElseThrow();
+        comFim.setDataFim(LocalDate.of(2026, 12, 31));
+        repository.save(comFim);
+
+        assertThat(service.inativar("usuario-b", doB.getId()).getDataFim()).isEqualTo(LocalDate.of(2026, 12, 31));
+    }
+
+    @Test
+    void inativarPrepostoQueAindaNaoComecouUsaADataDeInicio() {
+        Preposto futuro = repository.findById(doB.getId()).orElseThrow();
+        futuro.setDataInicio(LocalDate.now().plusDays(10));
+        repository.save(futuro);
+
+        // data de fim nunca fica antes do início
+        assertThat(service.inativar("usuario-b", doB.getId()).getDataFim()).isEqualTo(LocalDate.now().plusDays(10));
+    }
+
+    @Test
+    void reativarLimpaDataFimEVoltaParaOsAtivos() {
+        service.inativar("usuario-b", doB.getId());
+
+        PrepostoResponse reativado = service.reativar("usuario-b", doB.getId());
+
+        assertThat(reativado.isAtivo()).isTrue();
+        assertThat(reativado.getDataFim()).isNull();
+        assertThat(service.listar("usuario-b", "ativos", null, 0, 20, "nome", "asc").getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    void inativarOuReativarPrepostoDeOutroUsuarioDa404ESemAlterar() {
+        assertThatThrownBy(() -> service.inativar("usuario-a", doB.getId()))
+                .isInstanceOf(RecursoNaoEncontradoException.class);
+        assertThatThrownBy(() -> service.reativar("usuario-a", doB.getId()))
+                .isInstanceOf(RecursoNaoEncontradoException.class);
+        assertThatThrownBy(() -> service.inativar("usuario-a", "000000000000000000000000"))
+                .isInstanceOf(RecursoNaoEncontradoException.class);
+
+        Preposto intacto = repository.findById(doB.getId()).orElseThrow();
+        assertThat(intacto.isAtivo()).isTrue();
+        assertThat(intacto.getDataFim()).isNull();
+    }
+
     private void assertBadRequest(org.assertj.core.api.ThrowableAssert.ThrowingCallable chamada) {
         assertThatThrownBy(chamada).isInstanceOfSatisfying(ResponseStatusException.class,
                 e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST));

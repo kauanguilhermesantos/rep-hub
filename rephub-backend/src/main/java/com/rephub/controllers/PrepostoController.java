@@ -73,4 +73,15 @@ public class PrepostoController {
                                                    @Valid @RequestBody PrepostoRequest request) {
         return ResponseEntity.ok(prepostoService.editar(usuarioId(authentication), id, request));
     }
+
+    // Sem exclusão física: inativar só encerra o preposto (idempotente)
+    @PostMapping("/{id}/inativar")
+    public ResponseEntity<PrepostoResponse> inativar(Authentication authentication, @PathVariable String id) {
+        return ResponseEntity.ok(prepostoService.inativar(usuarioId(authentication), id));
+    }
+
+    @PostMapping("/{id}/reativar")
+    public ResponseEntity<PrepostoResponse> reativar(Authentication authentication, @PathVariable String id) {
+        return ResponseEntity.ok(prepostoService.reativar(usuarioId(authentication), id));
+    }
 }
