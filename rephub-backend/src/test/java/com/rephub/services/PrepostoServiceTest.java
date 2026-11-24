@@ -224,6 +224,26 @@ class PrepostoServiceTest {
     }
 
     @Test
+    void cicloCompletoCriarInativarEditarReativar() {
+        PrepostoResponse criado = service.criar("usuario-a", request("Ciclo", null, "2", LocalDate.of(2026, 1, 1), null));
+        assertThat(criado.isAtivo()).isTrue();
+
+        assertThat(service.inativar("usuario-a", criado.getId()).isAtivo()).isFalse();
+
+        // Editar um inativo troca os dados mas não o reativa
+        PrepostoResponse editado = service.editar("usuario-a", criado.getId(),
+                request("Ciclo Editado", null, "3", LocalDate.of(2026, 1, 1), null));
+        assertThat(editado.isAtivo()).isFalse();
+        assertThat(editado.getNome()).isEqualTo("Ciclo Editado");
+
+        PrepostoResponse reativado = service.reativar("usuario-a", criado.getId());
+        assertThat(reativado.isAtivo()).isTrue();
+        assertThat(reativado.getComissaoPercentualPadrao()).isEqualByComparingTo("3");
+        assertThat(service.buscar("usuario-a", criado.getId()).isAtivo()).isTrue();
+        assertThat(repository.count()).isEqualTo(5); // nada apagado ao longo do ciclo
+    }
+
+    @Test
     void inativarOuReativarPrepostoDeOutroUsuarioDa404ESemAlterar() {
         assertThatThrownBy(() -> service.inativar("usuario-a", doB.getId()))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
