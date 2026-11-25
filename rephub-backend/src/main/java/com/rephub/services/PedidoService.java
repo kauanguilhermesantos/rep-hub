@@ -146,9 +146,10 @@ public class PedidoService {
         return enriquecer(pedidoRepository.findByUsuario_IdOrderByDataCadastroDesc(usuarioId, pageable));
     }
 
-    // Completa usuário e marca (resumida) de cada pedido com UMA consulta por tipo,
-    // em vez de duas consultas por pedido.
+    // Completa usuário, marca (resumida) e nome do preposto de cada pedido com UMA consulta por tipo,
+    // em vez de uma consulta por pedido.
     private List<Pedido> enriquecer(List<Pedido> pedidos) {
+        preencherPrepostoNome(pedidos);
         Set<String> usuarioIds = new HashSet<>();
         Set<String> marcaIds = new HashSet<>();
         for (Pedido pedido : pedidos) {
@@ -190,6 +191,19 @@ public class PedidoService {
         return pedidos;
     }
 
+    // Preposto inativo continua com o nome exibido; preposto apagado deixa o nome vazio
+    public List<Pedido> preencherPrepostoNome(List<Pedido> pedidos) {
+        Set<String> ids = pedidos.stream().map(Pedido::getPrepostoId).filter(id -> id != null)
+                .collect(Collectors.toSet());
+        if (ids.isEmpty()) {
+            return pedidos;
+        }
+        Map<String, String> nomes = new HashMap<>();
+        prepostoRepository.findAllById(ids).forEach(p -> nomes.put(p.getId(), p.getNome()));
+        pedidos.forEach(p -> p.setPrepostoNome(p.getPrepostoId() != null ? nomes.get(p.getPrepostoId()) : null));
+        return pedidos;
+    }
+
     public Pedido findById(String id) {
         return pedidoRepository.findById(id).orElse(null);
     }
@@ -216,7 +230,7 @@ public class PedidoService {
             pedido.setDataCadastro(LocalDateTime.now());
         }
 
-        return pedidoRepository.save(pedido);
+        return preencherPrepostoNome(List.of(pedidoRepository.save(pedido))).get(0);
     }
 
     public Pedido updatePedido(Pedido pedido) {
@@ -278,7 +292,7 @@ public class PedidoService {
                 existingPedido.getUsuario() != null ? existingPedido.getUsuario().getId() : null,
                 pedido.getPrepostoId());
 
-        return pedidoRepository.save(existingPedido);
+        return preencherPrepostoNome(List.of(pedidoRepository.save(existingPedido))).get(0);
     }
 
     /**

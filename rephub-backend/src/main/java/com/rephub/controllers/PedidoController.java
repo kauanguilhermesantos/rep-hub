@@ -73,7 +73,7 @@ public class PedidoController {
         if (pedido == null || !pertenceAoUsuario(pedido, authentication)) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(pedido);
+        return ResponseEntity.ok(pedidoService.preencherPrepostoNome(List.of(pedido)).get(0));
     }
 
     @PostMapping

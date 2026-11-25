@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -15,6 +16,8 @@ import lombok.Data;
 @Document(collection = "pedidos")
 // Atende a listagem paginada: filtra por dono + período e ordena por data (mais recente primeiro)
 @CompoundIndex(name = "idx_pedido_usuario_data", def = "{'usuario._id': 1, 'dataCadastro': -1}")
+// Atende "pedidos do usuário por preposto"
+@CompoundIndex(name = "idx_pedido_usuario_preposto", def = "{'usuario._id': 1, 'prepostoId': 1}")
 public class Pedido {
     @Id
     private String id;
@@ -34,4 +37,7 @@ public class Pedido {
     // Cópia do percentual do preposto no momento do pedido: mudar o padrão depois não altera pedidos antigos
     @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal comissaoPrepostoPercentual;
+    // Só na resposta: preenchido na leitura a partir do prepostoId (não é salvo, o nome pode mudar)
+    @Transient
+    private String prepostoNome;
 }
