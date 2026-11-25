@@ -135,6 +135,7 @@ public class PedidoController {
         pedido.setComissaoPercentual(request.getComissaoPercentual());
         pedido.setValorComissao(request.getValorComissao());
         pedido.setCondicaoPagamento(request.getCondicaoPagamento());
+        pedido.setPrepostoId(request.getPrepostoId());
 
         if (request.getEstado() != null && !request.getEstado().isBlank()) {
             pedido.setEstado(request.getEstado().trim().toUpperCase());

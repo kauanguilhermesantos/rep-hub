@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,11 +22,15 @@ import org.springframework.stereotype.Service;
 
 import com.rephub.dto.PaginaPedidosResponse;
 import com.rephub.dto.ResumoPedidosResponse;
+import com.rephub.exceptions.RecursoNaoEncontradoException;
+import com.rephub.exceptions.RegraNegocioException;
 import com.rephub.models.Marca;
 import com.rephub.models.Pedido;
+import com.rephub.models.Preposto;
 import com.rephub.models.Usuario;
 import com.rephub.repositories.MarcaRepository;
 import com.rephub.repositories.PedidoRepository;
+import com.rephub.repositories.PrepostoRepository;
 import com.rephub.repositories.UsuarioRepository;
 import com.rephub.util.Dinheiro;
 
@@ -37,6 +42,7 @@ public class PedidoService {
     private PedidoRepository pedidoRepository;
     private MarcaRepository marcaRepository;
     private UsuarioRepository usuarioRepository;
+    private PrepostoRepository prepostoRepository;
     private ViagemService viagemService;
     private MongoTemplate mongoTemplate;
 
@@ -202,6 +208,10 @@ public class PedidoService {
             pedido.setMarca(marca);
         }
 
+        String prepostoPedido = pedido.getPrepostoId();
+        pedido.setPrepostoId(null); // pedido novo não tem preposto anterior: sempre valida e copia
+        aplicarPreposto(pedido, pedido.getUsuario() != null ? pedido.getUsuario().getId() : null, prepostoPedido);
+
         if (pedido.getDataCadastro() == null) {
             pedido.setDataCadastro(LocalDateTime.now());
         }
@@ -263,7 +273,38 @@ public class PedidoService {
             existingPedido.setAnexoUrl(pedido.getAnexoUrl());
         }
 
+        // Diferente dos campos acima, prepostoId vazio não significa "manter": remove o vínculo
+        aplicarPreposto(existingPedido,
+                existingPedido.getUsuario() != null ? existingPedido.getUsuario().getId() : null,
+                pedido.getPrepostoId());
+
         return pedidoRepository.save(existingPedido);
+    }
+
+    /**
+     * Vincula, troca ou remove o preposto do pedido.
+     * - vazio: remove o vínculo e o percentual;
+     * - mesmo preposto: mantém o percentual copiado antes (mesmo que o preposto tenha sido inativado
+     *   ou mudado o padrão depois);
+     * - novo preposto: precisa ser do dono (404) e estar ativo (409); copia o percentual padrão.
+     */
+    private void aplicarPreposto(Pedido pedido, String donoId, String prepostoId) {
+        if (prepostoId == null || prepostoId.isBlank()) {
+            pedido.setPrepostoId(null);
+            pedido.setComissaoPrepostoPercentual(null);
+            return;
+        }
+        if (prepostoId.equals(pedido.getPrepostoId())) {
+            return;
+        }
+        Preposto preposto = (donoId == null ? Optional.<Preposto>empty()
+                : prepostoRepository.findByIdAndUsuarioId(prepostoId, donoId))
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Preposto não encontrado"));
+        if (!preposto.isAtivo()) {
+            throw new RegraNegocioException("Preposto inativo não pode ser vinculado a pedidos");
+        }
+        pedido.setPrepostoId(preposto.getId());
+        pedido.setComissaoPrepostoPercentual(preposto.getComissaoPercentualPadrao());
     }
 
     public Pedido deletePedido(String id) {
