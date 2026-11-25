@@ -11,12 +11,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.mongodb.test.autoconfigure.DataMongoTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+import com.rephub.config.IndicesMongoConfig;
 import com.rephub.models.Preposto;
 
 // Usa o MONGO_URI (Atlas), mas sempre no banco rephub_test: o deleteAll() nunca atinge o banco real
-@DataMongoTest(properties = { "spring.data.mongodb.auto-index-creation=true", "spring.mongodb.database=rephub_test" })
+// Índices criados como na aplicação (IndicesMongoConfig): o auto-index-creation também criaria os dos
+// objetos embutidos, como usuario.email único em pedidos, e falharia com dados de teste
+@DataMongoTest(properties = "spring.mongodb.database=rephub_test")
+@Import(IndicesMongoConfig.class)
 class PrepostoRepositoryTest {
 
     @Autowired
@@ -25,10 +30,14 @@ class PrepostoRepositoryTest {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private IndicesMongoConfig indices;
+
     @BeforeEach
     void limpar() {
         assertThat(mongoTemplate.getDb().getName()).as("trava contra apagar dados reais").isEqualTo("rephub_test");
         repository.deleteAll();
+        indices.criarIndices();
     }
 
     @Test

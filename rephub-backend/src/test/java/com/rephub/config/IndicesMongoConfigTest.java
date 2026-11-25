@@ -32,7 +32,7 @@ class IndicesMongoConfigTest {
     @Test
     void ignoraIndicesDoUsuarioEmbutidoEmPedidoEMarca() {
         // Sem "usuario.email" único: isso limitaria a um pedido/uma marca por usuário
-        assertThat(nomes(Pedido.class)).containsExactly("idx_pedido_usuario_data");
+        assertThat(nomes(Pedido.class)).containsExactlyInAnyOrder("idx_pedido_usuario_data", "idx_pedido_usuario_preposto");
         assertThat(nomes(Marca.class)).isEmpty();
     }
 
