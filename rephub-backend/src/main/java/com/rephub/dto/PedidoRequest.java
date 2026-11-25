@@ -48,4 +48,7 @@ public class PedidoRequest {
     // Data do pedido (yyyy-MM-dd). Se não vier, usa a data de hoje. Só vale na criação.
     @PastOrPresent(message = "A data do pedido não pode ser futura")
     private LocalDate data;
+
+    // Preposto que fez a venda (opcional)
+    private String prepostoId;
 }

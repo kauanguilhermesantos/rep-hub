@@ -1,10 +1,13 @@
 package com.rephub.models;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import lombok.Data;
 
@@ -27,4 +30,8 @@ public class Pedido {
     private String cidade; // Cidade do cliente/pedido
     private LocalDateTime dataCadastro;
     private String anexoUrl; // URL do anexo (foto do pedido)
+    private String prepostoId; // Preposto que fez a venda (opcional)
+    // Cópia do percentual do preposto no momento do pedido: mudar o padrão depois não altera pedidos antigos
+    @Field(targetType = FieldType.DECIMAL128)
+    private BigDecimal comissaoPrepostoPercentual;
 }
