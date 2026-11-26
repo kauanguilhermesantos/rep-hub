@@ -27,4 +27,12 @@ public final class Dinheiro {
     public static BigDecimal deDouble(Double valor) {
         return valor == null ? BigDecimal.ZERO.setScale(2) : BigDecimal.valueOf(valor).setScale(2, RoundingMode.HALF_UP);
     }
+
+    /** comissão × % / 100, 2 casas HALF_UP. Sem preposto (percentual null) vale 0.00. */
+    public static BigDecimal valorComissaoPreposto(Double valorComissao, BigDecimal percentual) {
+        if (percentual == null) {
+            return BigDecimal.ZERO.setScale(2);
+        }
+        return deDouble(valorComissao).multiply(percentual).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+    }
 }
