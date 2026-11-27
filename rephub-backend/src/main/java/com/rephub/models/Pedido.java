@@ -10,6 +10,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 
+import com.rephub.util.Dinheiro;
+
 import lombok.Data;
 
 @Data
@@ -40,4 +42,9 @@ public class Pedido {
     // Só na resposta: preenchido na leitura a partir do prepostoId (não é salvo, o nome pode mudar)
     @Transient
     private String prepostoNome;
+
+    // Só na resposta (JSON): o Mongo mapeia campos, não getters, então isto não é salvo
+    public BigDecimal getValorComissaoPreposto() {
+        return Dinheiro.valorComissaoPreposto(valorComissao, comissaoPrepostoPercentual);
+    }
 }
